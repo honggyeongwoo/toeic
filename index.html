@@ -101,6 +101,8 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-off
 /* card speaker */
 .spk.mini{position:absolute;top:10px;right:10px;width:44px;height:44px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:20px;display:grid;place-items:center}
 .spk.mini.on{animation:pulse 1s ease-in-out infinite}
+.tagrow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.spk.mini.inline{position:static;width:40px;height:40px;font-size:18px}
 /* passages */
 .passage{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;font-size:15.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;max-height:38vh;overflow-y:auto;box-shadow:var(--shadow)}
 .passage .ttl{font-weight:700;display:block;margin-bottom:6px;color:var(--muted);font-size:13px;letter-spacing:.04em;white-space:normal}
@@ -969,12 +971,18 @@ function loadVoices(){
     if(!VOICES.f&&!VOICES.m&&en.length>=2){VOICES.f=en[0];VOICES.m=en[1]}
   }catch(e){}
 }
-function stopSpeak(){if(!canSpeak)return;try{speechSynthesis.cancel()}catch(e){}speaking=false;var s=$('.spk');if(s)s.classList.remove('on')}
+var UTTS=[],speakTimer=null,unlocked=false;
+function stopSpeak(){clearTimeout(speakTimer);if(!canSpeak)return;try{speechSynthesis.cancel()}catch(e){}speaking=false;var s=$('.spk');if(s)s.classList.remove('on')}
+/* iOS는 사용자 탭 안에서 한 번 speak()를 해야 이후 자동 재생이 풀림 → 버튼 탭마다 무음 발화로 잠금 해제 */
+function primeSpeech(){
+  if(!canSpeak||unlocked)return;
+  try{var u=new SpeechSynthesisUtterance(' ');u.volume=0;u.lang='en-US';speechSynthesis.speak(u);unlocked=true}catch(e){}
+}
 /* parts: [{text, g:'f'|'m'}] */
 function speak(parts){
   if(!canSpeak)return;
   try{
-    speechSynthesis.cancel();
+    clearTimeout(speakTimer);speechSynthesis.cancel();UTTS.length=0;
     if(!VOICES.ready)loadVoices();
     var s=$('.spk');if(s)s.classList.add('on');speaking=true;
     var done=function(){speaking=false;var s2=$('.spk');if(s2)s2.classList.remove('on')};
@@ -983,8 +991,11 @@ function speak(parts){
       var v=VOICES[p.g]||VOICES.any;if(v){u.voice=v;u.lang=v.lang}
       if(!VOICES.f||!VOICES.m||VOICES.f===VOICES.m)u.pitch=p.g==='f'?1.15:0.85;
       if(i===parts.length-1)u.onend=done;u.onerror=done;
-      speechSynthesis.speak(u);
+      UTTS.push(u);
     });
+    /* cancel() 직후 바로 speak()하면 iOS/Chrome이 첫 발화를 버리는 경우가 있어 잠깐 뒤에 큐잉 */
+    var go=function(){try{UTTS.forEach(function(u){speechSynthesis.speak(u)})}catch(e){done()}};
+    if(unlocked)speakTimer=setTimeout(go,80);else go();
   }catch(e){speaking=false}
 }
 if(canSpeak){try{speechSynthesis.onvoiceschanged=loadVoices;loadVoices()}catch(e){}}
@@ -1125,11 +1136,15 @@ function renderVocab(it){
 }
 function exHl(ex,word){var re=new RegExp('('+word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').split(' ')[0].slice(0,Math.max(4,word.split(' ')[0].length-2))+'\\w*)','i');return esc(ex).replace(re,'<em>$1</em>')}
 function renderP5(it){
-  var q=P5[it.id];
-  setScreen('<span class="tag'+(it.r?' review':'')+'">'+(it.r?'복습 · ':'')+'Part 5 · '+esc(q.type)+'</span>'
+  var q=P5[it.id],g=genderOf(q.id);
+  setScreen('<div class="tagrow"><span class="tag'+(it.r?' review':'')+'">'+(it.r?'복습 · ':'')+'Part 5 · '+esc(q.type)+'</span>'+(canSpeak?'<button class="spk mini inline" id="spk" aria-label="다시 듣기">🔊</button>':'')+'</div>'
     +'<p class="q">'+esc(q.q).replace('------','<span class="blank">______</span>')+'</p>'
-    +choicesHtml(q.choices)+'<div id="feedback"></div><p class="keys">1~4 선택 · Enter 다음</p>');
-  bindChoices(it,q.answer,q.exp);
+    +choicesHtml(q.choices)+'<div id="feedback"></div><p class="keys">1~4 선택 · Space 듣기 · Enter 다음</p>');
+  var full=q.q.replace('------',q.choices[q.answer]),answered=false;
+  var say=function(){speak([{text:answered?full:q.q.replace('------',', blank, '),g:g}])};
+  var sp=$('#spk');if(sp)sp.onclick=say;screen._space=say;
+  if(canSpeak)timer=setTimeout(say,150);
+  bindChoices(it,q.answer,q.exp,null,function(ok){answered=true;if(!ok)speak([{text:full,g:g}])});
 }
 function renderP2(it){
   var q=P2[it.id],hide=canSpeak;
@@ -1177,6 +1192,8 @@ document.addEventListener('keydown',function(e){
     var b=screen.querySelectorAll('.choice')[+e.key-1];if(b&&!b.disabled)b.click();
   }
 });
+document.addEventListener('pointerdown',primeSpeech,{passive:true});
+document.addEventListener('touchstart',primeSpeech,{passive:true});
 document.addEventListener('visibilitychange',function(){if(document.hidden)stopSpeak()});
 
 /* ---------- boot ---------- */
