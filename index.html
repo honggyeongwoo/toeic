@@ -86,7 +86,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-off
 .stick{position:sticky;bottom:0;padding-block:8px 4px;background:linear-gradient(to top,var(--bg) 70%,transparent)}
 
 /* flashcard */
-.card{background:var(--surface);border-radius:20px;box-shadow:var(--shadow);border:1.5px solid var(--line);padding:28px 20px;min-height:220px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:8px;cursor:pointer;user-select:none}
+.card{position:relative;background:var(--surface);border-radius:20px;box-shadow:var(--shadow);border:1.5px solid var(--line);padding:28px 20px;min-height:220px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:8px;cursor:pointer;user-select:none}
 .card .w{font-size:34px;font-weight:700;letter-spacing:-.01em;text-wrap:balance;overflow-wrap:anywhere}
 .card .pos{color:var(--muted);font-size:14px}
 .card .m{font-size:22px;font-weight:500;color:var(--accent)}
@@ -98,6 +98,9 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-off
 .pair .yes{min-height:56px;border-radius:14px;background:var(--ok);color:#fff;font-weight:700;font-size:17px}
 .card.flip .w{font-size:26px}
 
+/* card speaker */
+.spk.mini{position:absolute;top:10px;right:10px;width:44px;height:44px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:20px;display:grid;place-items:center}
+.spk.mini.on{animation:pulse 1s ease-in-out infinite}
 /* passages */
 .passage{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;font-size:15.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;max-height:38vh;overflow-y:auto;box-shadow:var(--shadow)}
 .passage .ttl{font-weight:700;display:block;margin-bottom:6px;color:var(--muted);font-size:13px;letter-spacing:.04em;white-space:normal}
@@ -946,26 +949,46 @@ function finishSession(){
   ss.fin=1;save();
 }
 
-/* ---------- speech ---------- */
+/* ---------- speech (토익식: 남/여 성우 교대, Part 2는 질문·응답 성별 다르게) ---------- */
 var canSpeak=('speechSynthesis' in window)&&('SpeechSynthesisUtterance' in window);
-var speaking=false,voice=null;
-function pickVoice(){try{var vs=speechSynthesis.getVoices();if(!vs.length)return null;return vs.filter(function(v){return /^en[-_]US/i.test(v.lang)&&/Google|Samantha|Aria|Jenny|Natural/i.test(v.name)})[0]||vs.filter(function(v){return /^en[-_]US/i.test(v.lang)})[0]||vs.filter(function(v){return /^en/i.test(v.lang)})[0]||null}catch(e){return null}}
+var speaking=false,VOICES={f:null,m:null,any:null,ready:false};
+var FEM=/samantha|karen|moira|tessa|victoria|ava|allison|susan|zira|aria|jenny|martha|fiona|kate|serena|nicky|catherine|libby|sonia|natasha|emma|michelle|zoe|female|woman/i;
+var MAL=/daniel|alex|fred|tom|aaron|arthur|gordon|rishi|david|mark|guy|ryan|james|oliver|george|william|liam|evan|reed|rocko|eddy|male|\bman\b/i;
+var NOVELTY=/bad news|bahh|bells|boing|bubbles|cellos|deranged|good news|hysterical|jester|organ|superstar|trinoids|whisper|wobble|zarvox|albert|junior|kathy|ralph|grandma|grandpa|shelley|flo|sandy/i;
+var QUALITY=/natural|neural|premium|enhanced|google|samantha|daniel|karen|aaron|arthur|gordon|moira|tessa|martha/i;
+function loadVoices(){
+  try{
+    var vs=speechSynthesis.getVoices();if(!vs.length)return;
+    var en=vs.filter(function(v){return /^en[-_](US|GB|AU|CA|IE|NZ)/i.test(v.lang)&&!NOVELTY.test(v.name)});
+    if(!en.length)en=vs.filter(function(v){return /^en/i.test(v.lang)});
+    var score=function(v){return (QUALITY.test(v.name)?2:0)+(/^en[-_]US/i.test(v.lang)?1:0)};
+    en.sort(function(a,b){return score(b)-score(a)});
+    var f=en.filter(function(v){return FEM.test(v.name)}),m=en.filter(function(v){return !FEM.test(v.name)&&MAL.test(v.name)});
+    VOICES.any=en[0]||null;VOICES.f=f[0]||null;VOICES.m=m[0]||null;VOICES.ready=true;
+    /* 성별을 못 알아내면 목소리 2개를 그냥 나눠 쓰고, 1개뿐이면 음높이로 구분 */
+    if(!VOICES.f&&!VOICES.m&&en.length>=2){VOICES.f=en[0];VOICES.m=en[1]}
+  }catch(e){}
+}
 function stopSpeak(){if(!canSpeak)return;try{speechSynthesis.cancel()}catch(e){}speaking=false;var s=$('.spk');if(s)s.classList.remove('on')}
+/* parts: [{text, g:'f'|'m'}] */
 function speak(parts){
   if(!canSpeak)return;
   try{
     speechSynthesis.cancel();
-    if(!voice)voice=pickVoice();
+    if(!VOICES.ready)loadVoices();
     var s=$('.spk');if(s)s.classList.add('on');speaking=true;
+    var done=function(){speaking=false;var s2=$('.spk');if(s2)s2.classList.remove('on')};
     parts.forEach(function(p,i){
-      var u=new SpeechSynthesisUtterance(p);u.lang='en-US';u.rate=0.95;if(voice)u.voice=voice;
-      if(i===parts.length-1)u.onend=function(){speaking=false;var s2=$('.spk');if(s2)s2.classList.remove('on')};
-      u.onerror=function(){speaking=false;var s2=$('.spk');if(s2)s2.classList.remove('on')};
+      var u=new SpeechSynthesisUtterance(p.text);u.lang='en-US';u.rate=0.95;
+      var v=VOICES[p.g]||VOICES.any;if(v){u.voice=v;u.lang=v.lang}
+      if(!VOICES.f||!VOICES.m||VOICES.f===VOICES.m)u.pitch=p.g==='f'?1.15:0.85;
+      if(i===parts.length-1)u.onend=done;u.onerror=done;
       speechSynthesis.speak(u);
     });
   }catch(e){speaking=false}
 }
-if(canSpeak){try{speechSynthesis.onvoiceschanged=function(){voice=pickVoice()}}catch(e){}}
+if(canSpeak){try{speechSynthesis.onvoiceschanged=loadVoices;loadVoices()}catch(e){}}
+function genderOf(id){var n=parseInt(String(id).replace(/\D/g,''),10)||0;return n%2?'f':'m'}
 
 /* ---------- rendering ---------- */
 var locked=false,timer=null;
@@ -1081,16 +1104,21 @@ function bindChoices(it,answer,exp,ch,after){
 }
 function renderVocab(it){
   var v=V[it.id],flipped=false;
+  var g=genderOf(v.id);
   setScreen('<span class="tag'+(it.r?' review':'')+'">'+(it.r?'복습 · 단어':'단어')+'</span>'
-    +'<div class="card" id="card"><div class="w">'+esc(v.word)+'</div><div class="pos">'+esc(v.pos)+'</div><div id="back" hidden><div class="m">'+esc(v.meaning)+'</div><div class="ex">'+exHl(v.ex,v.word)+'</div></div><div class="tap" id="tap">카드를 누르면 뜻이 보여요</div></div>'
-    +'<div class="pair" id="pair"><button class="no" data-k="no">몰라요</button><button class="yes" data-k="yes">알아요</button></div><div id="feedback"></div><p class="keys">1 몰라요 · 2 알아요 · Enter 뜻 보기/다음</p>');
+    +'<div class="card" id="card">'+(canSpeak?'<button class="spk mini" id="spk" aria-label="다시 듣기">🔊</button>':'')+'<div class="w">'+esc(v.word)+'</div><div class="pos">'+esc(v.pos)+'</div><div id="back" hidden><div class="m">'+esc(v.meaning)+'</div><div class="ex">'+exHl(v.ex,v.word)+'</div></div><div class="tap" id="tap">카드를 누르면 뜻이 보여요</div></div>'
+    +'<div class="pair" id="pair"><button class="no" data-k="no">몰라요</button><button class="yes" data-k="yes">알아요</button></div><div id="feedback"></div><p class="keys">1 몰라요 · 2 알아요 · Space 듣기 · Enter 뜻 보기/다음</p>');
   var card=$('#card');
-  function flip(){if(flipped)return;flipped=true;card.classList.add('flip');$('#back').hidden=false;$('#tap').hidden=true}
+  var sayWord=function(){speak([{text:v.word,g:g}])},sayAll=function(){speak([{text:v.word,g:g},{text:v.ex,g:g}])};
+  function flip(){if(flipped)return;flipped=true;card.classList.add('flip');$('#back').hidden=false;$('#tap').hidden=true;speak([{text:v.ex,g:g}])}
   card.onclick=flip;
+  var sp=$('#spk');if(sp)sp.onclick=function(e){e.stopPropagation();if(flipped)sayAll();else sayWord()};
+  screen._space=function(){if(flipped)sayAll();else sayWord()};
+  if(canSpeak)timer=setTimeout(sayWord,150);
   screen.querySelectorAll('#pair button').forEach(function(b){b.onclick=function(){
     if(locked)return;locked=true;var ok=b.dataset.k==='yes';flip();
     $('#pair').hidden=true;markResult(it,ok);header();
-    if(ok){card.style.borderColor='var(--ok-line)';timer=setTimeout(next,900)}
+    if(ok){card.style.borderColor='var(--ok-line)';timer=setTimeout(next,canSpeak?1600:900)}
     else{card.style.borderColor='var(--bad-line)';$('#feedback').innerHTML='<div class="actions stick"><button class="primary" id="nextBtn">다음 ▶</button></div>';$('#nextBtn').onclick=next;$('#nextBtn').focus()}
   }});
   screen._enter=function(){if(!flipped)flip();else if($('#nextBtn'))$('#nextBtn').click()};
@@ -1109,7 +1137,8 @@ function renderP2(it){
     +'<div class="lc"><button class="spk" id="spk" aria-label="듣기">🔊</button><div class="note">'+(hide?'질문과 (A)(B)(C)를 듣고 알맞은 응답을 고르세요':'이 기기는 음성 재생이 안 돼요. 텍스트로 풀어요.')+'</div>'
     +(hide?'':'<p class="q" style="text-align:center">'+esc(q.q)+'</p>')+'</div>'
     +choicesHtml(q.choices,hide)+'<div id="feedback"></div><p class="keys">1~3 선택 · Space 다시 듣기 · Enter 다음</p>');
-  var parts=[q.q,'A. '+q.choices[0],'B. '+q.choices[1],'C. '+q.choices[2]];
+  var g1=genderOf(q.id),g2=g1==='f'?'m':'f';
+  var parts=[{text:q.q,g:g1},{text:'A. '+q.choices[0],g:g2},{text:'B. '+q.choices[1],g:g2},{text:'C. '+q.choices[2],g:g2}];
   $('#spk').onclick=function(){speak(parts)};
   screen._space=function(){speak(parts)};
   bindChoices(it,q.answer,q.exp,hide?q.choices:null,function(){var f=$('#feedback');var s='<p class="hint">Q. '+esc(q.q)+'</p>';f.insertAdjacentHTML('afterbegin',s)});
