@@ -1,0 +1,1159 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>토익 30일 800</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: one column, max 640px, exactly one task per screen; sticky top bar = Day + phase dots + thin progress. */
+:root{
+  --bg:#F4F6F9; --surface:#FFFFFF; --fg:#171A21; --muted:#6B7280; --line:#E1E5EC;
+  --accent:#2457F5; --accent-fg:#FFFFFF; --accent-soft:#E8EEFF;
+  --ok:#15803D; --ok-bg:#DCFCE7; --ok-line:#86EFAC;
+  --bad:#B91C1C; --bad-bg:#FEE2E2; --bad-line:#FCA5A5;
+  --shadow:0 1px 2px rgba(23,26,33,.06),0 8px 24px rgba(23,26,33,.06);
+  --font:'Noto Sans KR',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0F1218; --surface:#181C25; --fg:#EDEFF3; --muted:#9AA3B2; --line:#2A3040;
+  --accent:#5B86FF; --accent-fg:#0F1218; --accent-soft:#1B2540;
+  --ok:#4ADE80; --ok-bg:#122A1B; --ok-line:#1F6B3A;
+  --bad:#F87171; --bad-bg:#3A1518; --bad-line:#7A2A2E;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0F1218; --surface:#181C25; --fg:#EDEFF3; --muted:#9AA3B2; --line:#2A3040;
+  --accent:#5B86FF; --accent-fg:#0F1218; --accent-soft:#1B2540;
+  --ok:#4ADE80; --ok-bg:#122A1B; --ok-line:#1F6B3A;
+  --bad:#F87171; --bad-bg:#3A1518; --bad-line:#7A2A2E;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:17px;line-height:1.5;-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0;margin:0}
+button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#wrap{min-height:100%;display:flex;flex-direction:column;max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 24px}
+
+/* top bar */
+#top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px 8px}
+#top .row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;font-weight:500;color:var(--muted)}
+#top .day{color:var(--fg);font-weight:700;font-variant-numeric:tabular-nums}
+#top .phase{display:flex;align-items:center;gap:8px}
+#top .dots{display:flex;gap:5px}
+#top .dots i{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--muted);display:block}
+#top .dots i.on{background:var(--accent);border-color:var(--accent)}
+#top .dots i.cur{background:var(--accent-soft);border-color:var(--accent)}
+#top .cnt{font-variant-numeric:tabular-nums}
+#bar{height:4px;border-radius:2px;background:var(--line);margin-top:8px;overflow:hidden}
+#bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s ease}
+
+/* screen */
+#screen{flex:1;display:flex;flex-direction:column;gap:14px;padding-block:8px}
+.tag{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.tag.review{color:var(--muted)}
+.q{font-size:20px;font-weight:500;line-height:1.55;text-wrap:pretty;margin:0}
+.q .blank{display:inline-block;min-width:3.2em;border-bottom:2px solid var(--accent);color:transparent;line-height:1}
+.hint{color:var(--muted);font-size:14px;margin:0}
+.choices{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.choice{display:flex;align-items:center;gap:12px;min-height:56px;padding:12px 14px;border-radius:14px;background:var(--surface);border:1.5px solid var(--line);text-align:left;font-size:17px;line-height:1.35;transition:transform .08s ease,background .15s,border-color .15s;box-shadow:var(--shadow)}
+.choice b{flex:none;width:28px;height:28px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:13px;font-weight:700}
+.choice span{flex:1;min-width:0;overflow-wrap:anywhere}
+.choice:active{transform:scale(.985)}
+.choice[disabled]{cursor:default}
+.choice.ok{background:var(--ok-bg);border-color:var(--ok-line);color:var(--ok)}
+.choice.ok b{background:var(--ok);color:#fff}
+.choice.bad{background:var(--bad-bg);border-color:var(--bad-line);color:var(--bad);animation:shake .3s ease}
+.choice.bad b{background:var(--bad);color:#fff}
+.choice.dim{opacity:.5}
+@keyframes shake{20%{transform:translateX(-4px)}60%{transform:translateX(4px)}100%{transform:none}}
+@keyframes pop{0%{transform:scale(.97)}60%{transform:scale(1.02)}100%{transform:none}}
+.choice.ok.pick{animation:pop .3s ease}
+.exp{background:var(--surface);border-left:4px solid var(--bad);border-radius:10px;padding:12px 14px;font-size:15px;line-height:1.55;box-shadow:var(--shadow)}
+.exp.good{border-left-color:var(--ok)}
+.exp .lbl{font-weight:700;margin-right:6px}
+
+.primary{min-height:56px;padding:12px 20px;border-radius:14px;background:var(--accent);color:var(--accent-fg);font-weight:700;font-size:18px;width:100%;box-shadow:var(--shadow);transition:transform .08s ease}
+.primary:active{transform:scale(.985)}
+.ghost{min-height:52px;padding:10px 18px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);font-weight:500;font-size:16px;width:100%}
+.actions{display:flex;flex-direction:column;gap:10px;margin-top:auto;padding-top:8px}
+.stick{position:sticky;bottom:0;padding-block:8px 4px;background:linear-gradient(to top,var(--bg) 70%,transparent)}
+
+/* flashcard */
+.card{background:var(--surface);border-radius:20px;box-shadow:var(--shadow);border:1.5px solid var(--line);padding:28px 20px;min-height:220px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:8px;cursor:pointer;user-select:none}
+.card .w{font-size:34px;font-weight:700;letter-spacing:-.01em;text-wrap:balance;overflow-wrap:anywhere}
+.card .pos{color:var(--muted);font-size:14px}
+.card .m{font-size:22px;font-weight:500;color:var(--accent)}
+.card .ex{font-size:15px;color:var(--muted);line-height:1.5;text-wrap:pretty}
+.card .ex em{font-style:normal;color:var(--fg);font-weight:500}
+.card .tap{font-size:13px;color:var(--muted);margin-top:8px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pair .no{min-height:56px;border-radius:14px;border:1.5px solid var(--bad-line);background:var(--surface);color:var(--bad);font-weight:700;font-size:17px}
+.pair .yes{min-height:56px;border-radius:14px;background:var(--ok);color:#fff;font-weight:700;font-size:17px}
+.card.flip .w{font-size:26px}
+
+/* passages */
+.passage{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;font-size:15.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;max-height:38vh;overflow-y:auto;box-shadow:var(--shadow)}
+.passage .ttl{font-weight:700;display:block;margin-bottom:6px;color:var(--muted);font-size:13px;letter-spacing:.04em;white-space:normal}
+.passage .b{display:inline-block;min-width:2.6em;border-bottom:2px solid var(--line);text-align:center;color:var(--muted);font-size:13px;font-weight:700}
+.passage .b.cur{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);border-radius:4px;padding:0 4px}
+.passage .b.done{border-color:transparent;color:var(--ok);font-weight:500;font-size:inherit;min-width:0}
+
+/* listening */
+.lc{display:flex;flex-direction:column;align-items:center;gap:14px;padding-block:8px}
+.lc .spk{width:92px;height:92px;border-radius:50%;background:var(--accent);color:var(--accent-fg);font-size:36px;display:grid;place-items:center;box-shadow:var(--shadow)}
+.lc .spk.on{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.06)}}
+.lc .note{font-size:14px;color:var(--muted);text-align:center}
+.choice.hiddenText span{color:var(--muted);font-weight:500}
+
+/* home / result */
+.home{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;padding-block:24px}
+.home h1{font-size:15px;font-weight:700;letter-spacing:.14em;color:var(--muted);margin:0;text-transform:uppercase}
+.home .big{font-size:44px;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin:0;font-variant-numeric:tabular-nums}
+.home .sub{color:var(--muted);font-size:15px;margin:0}
+.streak{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--line);border-radius:999px;padding:6px 14px;font-size:14px;font-weight:500;font-variant-numeric:tabular-nums}
+.cal{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;width:100%;max-width:360px}
+.cal i{aspect-ratio:1;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);display:grid;place-items:center;font-size:10px;color:var(--muted);font-style:normal;font-variant-numeric:tabular-nums}
+.cal i.done{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:700}
+.cal i.today{border-color:var(--accent);border-width:2px;color:var(--accent);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
+.stats div{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center}
+.stats b{display:block;font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.stats small{color:var(--muted);font-size:12px}
+.small{font-size:13px;color:var(--muted);background:none;text-decoration:underline;text-underline-offset:3px;padding:8px}
+.confirm{background:var(--surface);border:1.5px solid var(--bad-line);border-radius:14px;padding:14px;width:100%;display:flex;flex-direction:column;gap:10px;font-size:15px}
+.confirm .pair .no{border-color:var(--line);color:var(--fg)}
+.confirm .pair .yes{background:var(--bad)}
+.keys{font-size:12px;color:var(--muted);text-align:center;display:none}
+@media (hover:hover) and (min-width:700px){.keys{display:block}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="wrap">
+  <header id="top" hidden>
+    <div class="row"><span class="day" id="dayLabel">Day 1</span><span class="phase"><span class="dots" id="dots"></span><span id="phaseName"></span></span><span class="cnt" id="cnt">0/0</span></div>
+    <div id="bar"><i id="barFill"></i></div>
+  </header>
+  <main id="screen"></main>
+</div>
+<script>
+// 어휘 300개 (Day 1~30, 하루 10개)
+const VOCAB = [
+{id:"v001", day:1, word:"agenda", pos:"n.", meaning:"의제, 안건", ex:"Please review the agenda before tomorrow's meeting so we can finish within an hour."},
+{id:"v002", day:1, word:"minutes", pos:"n.", meaning:"회의록", ex:"Ms. Park will take the minutes and distribute them to all participants by Thursday afternoon."},
+{id:"v003", day:1, word:"postpone", pos:"v.", meaning:"연기하다", ex:"The board decided to postpone the product launch until the safety tests are completed."},
+{id:"v004", day:1, word:"attend", pos:"v.", meaning:"참석하다", ex:"All new employees are required to attend the orientation session on their first day."},
+{id:"v005", day:1, word:"colleague", pos:"n.", meaning:"동료", ex:"My colleague from the design team will join us for the client presentation next week."},
+{id:"v006", day:1, word:"deadline", pos:"n.", meaning:"마감일", ex:"The deadline for submitting the quarterly report has been moved to the end of March."},
+{id:"v007", day:1, word:"reschedule", pos:"v.", meaning:"일정을 변경하다", ex:"We need to reschedule the interview because the hiring manager is traveling on Monday."},
+{id:"v008", day:1, word:"punctual", pos:"adj.", meaning:"시간을 잘 지키는", ex:"Employees are expected to be punctual for every client meeting held at the headquarters."},
+{id:"v009", day:1, word:"briefly", pos:"adv.", meaning:"간단히, 잠시", ex:"The director spoke briefly about the merger before answering questions from the staff."},
+{id:"v010", day:1, word:"in charge of", pos:"phr.", meaning:"~을 담당하는", ex:"Mr. Lee is in charge of coordinating travel arrangements for the entire sales team."},
+{id:"v011", day:2, word:"supervisor", pos:"n.", meaning:"감독관, 상사", ex:"Please ask your supervisor to sign the request form before you leave for vacation."},
+{id:"v012", day:2, word:"approve", pos:"v.", meaning:"승인하다", ex:"The finance department must approve all purchases over five hundred dollars in advance."},
+{id:"v013", day:2, word:"submit", pos:"v.", meaning:"제출하다", ex:"Candidates should submit their application materials through the online portal by June 30."},
+{id:"v014", day:2, word:"memo", pos:"n.", meaning:"회람, 메모", ex:"A memo was sent to all staff explaining the new parking policy at the office."},
+{id:"v015", day:2, word:"remind", pos:"v.", meaning:"상기시키다", ex:"This email is to remind you that timesheets are due every Friday at noon."},
+{id:"v016", day:2, word:"mandatory", pos:"adj.", meaning:"의무적인", ex:"Attendance at the safety training is mandatory for everyone working in the warehouse."},
+{id:"v017", day:2, word:"promptly", pos:"adv.", meaning:"즉시, 정각에", ex:"The meeting will begin promptly at nine, so please arrive a few minutes early."},
+{id:"v018", day:2, word:"workload", pos:"n.", meaning:"업무량", ex:"Because of the heavy workload this month, the manager approved two temporary assistants."},
+{id:"v019", day:2, word:"delegate", pos:"v.", meaning:"위임하다", ex:"Good managers know how to delegate routine tasks so they can focus on planning."},
+{id:"v020", day:2, word:"take place", pos:"phr.", meaning:"열리다, 개최되다", ex:"The annual shareholders' meeting will take place in the main conference room on May 12."},
+{id:"v021", day:3, word:"applicant", pos:"n.", meaning:"지원자", ex:"Each applicant must provide two professional references along with a completed application form."},
+{id:"v022", day:3, word:"recruit", pos:"v.", meaning:"채용하다, 모집하다", ex:"The company plans to recruit twenty engineers for its new research facility in Busan."},
+{id:"v023", day:3, word:"requirement", pos:"n.", meaning:"요건, 필요조건", ex:"A bachelor's degree in accounting is a basic requirement for the financial analyst position."},
+{id:"v024", day:3, word:"experienced", pos:"adj.", meaning:"경험이 많은", ex:"We are looking for an experienced technician to maintain the equipment in our factory."},
+{id:"v025", day:3, word:"proficient", pos:"adj.", meaning:"능숙한", ex:"The ideal candidate is proficient in spreadsheet software and has strong communication skills."},
+{id:"v026", day:3, word:"promotion", pos:"n.", meaning:"승진; 판촉", ex:"After five years of excellent service, Ms. Kim received a promotion to regional manager."},
+{id:"v027", day:3, word:"retire", pos:"v.", meaning:"은퇴하다", ex:"Mr. Tanaka will retire next spring after thirty years with the engineering division."},
+{id:"v028", day:3, word:"vacancy", pos:"n.", meaning:"공석, 결원", ex:"There is currently a vacancy in the marketing department for an assistant coordinator."},
+{id:"v029", day:3, word:"thoroughly", pos:"adv.", meaning:"철저히", ex:"Please read the employee handbook thoroughly before you sign the acknowledgment form on Friday."},
+{id:"v030", day:3, word:"fill out", pos:"phr.", meaning:"작성하다, 기입하다", ex:"Visitors must fill out a registration form at the front desk before entering the building."},
+{id:"v031", day:4, word:"payroll", pos:"n.", meaning:"급여 대장, 급여 업무", ex:"The payroll department processes salaries on the twenty-fifth of every month without exception."},
+{id:"v032", day:4, word:"compensation", pos:"n.", meaning:"보상, 급여", ex:"The compensation package includes health insurance, a retirement plan, and fifteen vacation days."},
+{id:"v033", day:4, word:"overtime", pos:"n.", meaning:"초과 근무", ex:"Staff who work overtime during the holiday season will receive an additional bonus."},
+{id:"v034", day:4, word:"evaluation", pos:"n.", meaning:"평가", ex:"Every employee will have an evaluation meeting with a supervisor in early December."},
+{id:"v035", day:4, word:"performance", pos:"n.", meaning:"성과, 실적", ex:"The sales team's performance improved significantly after the new incentive program was introduced."},
+{id:"v036", day:4, word:"raise", pos:"n.", meaning:"임금 인상", ex:"Employees who exceed their targets may receive a raise at the end of the fiscal year."},
+{id:"v037", day:4, word:"transfer", pos:"v.", meaning:"전근하다, 이동시키다", ex:"Ms. Choi asked to transfer to the Seoul branch to be closer to her family."},
+{id:"v038", day:4, word:"resign", pos:"v.", meaning:"사직하다", ex:"The marketing director decided to resign in order to start her own consulting firm."},
+{id:"v039", day:4, word:"formerly", pos:"adv.", meaning:"이전에", ex:"Mr. Garcia, formerly the head of logistics, now oversees the entire supply chain."},
+{id:"v040", day:4, word:"on behalf of", pos:"phr.", meaning:"~을 대표하여", ex:"On behalf of the management team, I would like to thank you for your hard work."},
+{id:"v041", day:5, word:"orientation", pos:"n.", meaning:"오리엔테이션, 예비 교육", ex:"New hires will receive their badges and laptops during the orientation on Monday morning."},
+{id:"v042", day:5, word:"enroll", pos:"v.", meaning:"등록하다", ex:"Employees can enroll in the leadership course by contacting the training coordinator."},
+{id:"v043", day:5, word:"mentor", pos:"n.", meaning:"멘토, 조언자", ex:"Each new employee will be paired with a mentor who has at least five years of experience."},
+{id:"v044", day:5, word:"trainee", pos:"n.", meaning:"수습 직원", ex:"The trainee completed all of the required modules two weeks ahead of the original schedule."},
+{id:"v045", day:5, word:"certificate", pos:"n.", meaning:"증명서, 자격증", ex:"Participants who finish the workshop will receive a certificate signed by the instructor."},
+{id:"v046", day:5, word:"participate", pos:"v.", meaning:"참가하다", ex:"More than fifty employees chose to participate in the voluntary wellness program this year."},
+{id:"v047", day:5, word:"confident", pos:"adj.", meaning:"자신감 있는, 확신하는", ex:"After the practice session, the interns felt confident about presenting to the clients."},
+{id:"v048", day:5, word:"informative", pos:"adj.", meaning:"유익한", ex:"Attendees described the seminar on tax regulations as highly informative and well organized."},
+{id:"v049", day:5, word:"appropriately", pos:"adv.", meaning:"적절하게", ex:"Staff should dress appropriately when meeting with customers at the downtown showroom."},
+{id:"v050", day:5, word:"keep track of", pos:"phr.", meaning:"~을 기록하다, 파악하다", ex:"Use the new software to keep track of your hours and submit them every Friday."},
+{id:"v051", day:6, word:"renovation", pos:"n.", meaning:"수리, 개조", ex:"The lobby will be closed for renovation from July 1 until the end of August."},
+{id:"v052", day:6, word:"maintenance", pos:"n.", meaning:"유지 보수", ex:"Routine maintenance on the elevators is performed on the first Saturday of each month."},
+{id:"v053", day:6, word:"repair", pos:"v.", meaning:"수리하다", ex:"A technician will come on Tuesday to repair the printer on the third floor."},
+{id:"v054", day:6, word:"equipment", pos:"n.", meaning:"장비", ex:"All laboratory equipment must be cleaned and returned to the storage room after use."},
+{id:"v055", day:6, word:"install", pos:"v.", meaning:"설치하다", ex:"The IT team will install new security software on every computer this weekend."},
+{id:"v056", day:6, word:"malfunction", pos:"n.", meaning:"오작동, 고장", ex:"A malfunction in the heating system left the office uncomfortably cold on Monday."},
+{id:"v057", day:6, word:"inspect", pos:"v.", meaning:"점검하다", ex:"The city will inspect the building's fire alarms before issuing the occupancy permit."},
+{id:"v058", day:6, word:"spacious", pos:"adj.", meaning:"넓은", ex:"The new office is spacious enough to hold forty additional desks and two meeting rooms."},
+{id:"v059", day:6, word:"temporarily", pos:"adv.", meaning:"일시적으로", ex:"The parking garage will be temporarily closed while workers repaint the lines."},
+{id:"v060", day:6, word:"out of order", pos:"phr.", meaning:"고장 난", ex:"The copier on the second floor is out of order, so please use the one downstairs."},
+{id:"v061", day:7, word:"proposal", pos:"n.", meaning:"제안서, 제안", ex:"The committee will review each proposal and announce the winning bid next Wednesday."},
+{id:"v062", day:7, word:"present", pos:"v.", meaning:"발표하다, 제시하다", ex:"Ms. Rivera will present the updated marketing plan to the board on Thursday."},
+{id:"v063", day:7, word:"outline", pos:"v.", meaning:"개요를 설명하다", ex:"The manager asked us to outline the main steps of the project in one page."},
+{id:"v064", day:7, word:"summarize", pos:"v.", meaning:"요약하다", ex:"Could you summarize the key points of the report for those who missed the meeting?"},
+{id:"v065", day:7, word:"consensus", pos:"n.", meaning:"합의, 의견 일치", ex:"After a long discussion, the team reached a consensus on the new pricing structure."},
+{id:"v066", day:7, word:"objection", pos:"n.", meaning:"이의, 반대", ex:"If there is no objection, we will approve the budget as presented today."},
+{id:"v067", day:7, word:"brainstorm", pos:"v.", meaning:"아이디어를 모으다", ex:"Let's brainstorm some ideas for reducing shipping costs before the next quarterly review."},
+{id:"v068", day:7, word:"concise", pos:"adj.", meaning:"간결한", ex:"Please keep your presentation concise so that we have enough time for questions."},
+{id:"v069", day:7, word:"accordingly", pos:"adv.", meaning:"그에 맞춰, 따라서", ex:"The conference schedule has changed, so please adjust your travel plans accordingly."},
+{id:"v070", day:7, word:"in advance", pos:"phr.", meaning:"미리, 사전에", ex:"Please let the receptionist know in advance if you need a visitor's parking pass."},
+{id:"v071", day:8, word:"shipment", pos:"n.", meaning:"선적, 배송(품)", ex:"The shipment of office chairs is expected to arrive at the warehouse on Friday."},
+{id:"v072", day:8, word:"warehouse", pos:"n.", meaning:"창고", ex:"Our new warehouse near the port can store twice as many products as the old one."},
+{id:"v073", day:8, word:"inventory", pos:"n.", meaning:"재고", ex:"Store managers must count the inventory at the end of every month."},
+{id:"v074", day:8, word:"dispatch", pos:"v.", meaning:"발송하다, 파견하다", ex:"We will dispatch your order within twenty-four hours of receiving your payment in full."},
+{id:"v075", day:8, word:"freight", pos:"n.", meaning:"화물, 화물 운송", ex:"Freight charges will be added to the invoice unless the customer arranges pickup."},
+{id:"v076", day:8, word:"courier", pos:"n.", meaning:"택배 회사, 배달원", ex:"A courier will deliver the signed contracts to your office before noon tomorrow."},
+{id:"v077", day:8, word:"track", pos:"v.", meaning:"추적하다", ex:"Customers can track their packages online using the number printed on the receipt."},
+{id:"v078", day:8, word:"fragile", pos:"adj.", meaning:"깨지기 쉬운", ex:"Please mark the boxes as fragile because they contain glass samples for the exhibition."},
+{id:"v079", day:8, word:"overnight", pos:"adv.", meaning:"하룻밤 사이에, 익일 배송으로", ex:"The documents were sent overnight so that the client could sign them on Tuesday morning."},
+{id:"v080", day:8, word:"in transit", pos:"phr.", meaning:"운송 중인", ex:"Your order is currently in transit and should reach you within three business days."},
+{id:"v081", day:9, word:"supplier", pos:"n.", meaning:"공급업체", ex:"We switched to a new supplier that offers faster delivery and lower prices."},
+{id:"v082", day:9, word:"bulk", pos:"n.", meaning:"대량", ex:"Companies that order in bulk receive a fifteen percent discount on all paper products."},
+{id:"v083", day:9, word:"quantity", pos:"n.", meaning:"수량", ex:"Please double-check the quantity of each item before signing the delivery slip."},
+{id:"v084", day:9, word:"estimate", pos:"n.", meaning:"견적(서), 추정치", ex:"The contractor sent an estimate for the repairs, which was lower than we expected."},
+{id:"v085", day:9, word:"quote", pos:"n.", meaning:"견적", ex:"Could you send us a quote for printing five thousand brochures in full color?"},
+{id:"v086", day:9, word:"defective", pos:"adj.", meaning:"결함이 있는", ex:"Any defective products can be returned to the store for a full refund within thirty days."},
+{id:"v087", day:9, word:"merchandise", pos:"n.", meaning:"상품", ex:"All seasonal merchandise will be marked down by half starting next Monday."},
+{id:"v088", day:9, word:"durable", pos:"adj.", meaning:"내구성이 있는", ex:"These work boots are durable enough to last several years in a factory environment."},
+{id:"v089", day:9, word:"in stock", pos:"phr.", meaning:"재고가 있는", ex:"The item you requested is not in stock, but we can order it for you."},
+{id:"v090", day:9, word:"expedite", pos:"v.", meaning:"신속히 처리하다", ex:"We paid an extra fee to expedite the shipment of the replacement parts."},
+{id:"v091", day:10, word:"invoice", pos:"n.", meaning:"송장, 청구서", ex:"Please send the invoice to the accounting department by Friday so it can be paid on time."},
+{id:"v092", day:10, word:"budget", pos:"n.", meaning:"예산", ex:"The marketing budget for next year has been increased by ten percent."},
+{id:"v093", day:10, word:"expense", pos:"n.", meaning:"비용, 지출", ex:"Travel expenses must be reported within two weeks of returning from a business trip."},
+{id:"v094", day:10, word:"revenue", pos:"n.", meaning:"수익, 매출", ex:"The company's revenue grew by twelve percent thanks to strong sales in Asia."},
+{id:"v095", day:10, word:"profit", pos:"n.", meaning:"이익, 수익", ex:"Despite higher material costs, the factory reported a modest profit for the third quarter."},
+{id:"v096", day:10, word:"reimbursement", pos:"n.", meaning:"환급, 상환", ex:"To receive reimbursement for meals, attach the original receipts to your expense form."},
+{id:"v097", day:10, word:"deduct", pos:"v.", meaning:"공제하다", ex:"The bank will deduct a small fee from your account for each international transfer."},
+{id:"v098", day:10, word:"fiscal", pos:"adj.", meaning:"회계의, 재정의", ex:"Our fiscal year begins on April 1, so all budgets must be finalized by March."},
+{id:"v099", day:10, word:"quarterly", pos:"adv.", meaning:"분기별로", ex:"Sales figures are reported quarterly to the board of directors and to major investors."},
+{id:"v100", day:10, word:"exceed", pos:"v.", meaning:"초과하다", ex:"Expenses for the conference must not exceed the amount approved by the finance team."},
+{id:"v101", day:11, word:"contract", pos:"n.", meaning:"계약(서)", ex:"Both parties signed the contract after the legal team reviewed the final version."},
+{id:"v102", day:11, word:"clause", pos:"n.", meaning:"조항", ex:"The contract includes a clause that allows either party to cancel with thirty days' notice."},
+{id:"v103", day:11, word:"negotiate", pos:"v.", meaning:"협상하다", ex:"Our team will negotiate a better rate with the supplier before renewing the agreement."},
+{id:"v104", day:11, word:"terms", pos:"n.", meaning:"조건, 조항", ex:"Please read the terms of the lease carefully before signing the document."},
+{id:"v105", day:11, word:"renew", pos:"v.", meaning:"갱신하다", ex:"The client decided to renew the maintenance contract for another two years."},
+{id:"v106", day:11, word:"expire", pos:"v.", meaning:"만료되다", ex:"Your parking permit will expire at the end of the month unless you renew it."},
+{id:"v107", day:11, word:"comply with", pos:"phr.", meaning:"~을 준수하다", ex:"All vendors must comply with the safety regulations listed in the appendix."},
+{id:"v108", day:11, word:"binding", pos:"adj.", meaning:"구속력 있는", ex:"Once signed by both sides, the agreement becomes legally binding for three years."},
+{id:"v109", day:11, word:"mutually", pos:"adv.", meaning:"상호 간에", ex:"The two companies agreed on a mutually beneficial partnership to develop new software."},
+{id:"v110", day:11, word:"breach", pos:"n.", meaning:"위반", ex:"Failure to deliver the goods on time would be considered a breach of contract."},
+{id:"v111", day:12, word:"transaction", pos:"n.", meaning:"거래", ex:"Every transaction over ten thousand dollars must be approved by two senior managers."},
+{id:"v112", day:12, word:"balance", pos:"n.", meaning:"잔액, 잔고", ex:"The remaining balance is due within thirty days of the installation date."},
+{id:"v113", day:12, word:"installment", pos:"n.", meaning:"할부금, 분할 납입", ex:"Customers may pay for the equipment in twelve monthly installments at no extra charge."},
+{id:"v114", day:12, word:"overdue", pos:"adj.", meaning:"기한이 지난", ex:"Please note that your payment is now overdue, and a late fee may apply."},
+{id:"v115", day:12, word:"outstanding", pos:"adj.", meaning:"미지불의; 뛰어난", ex:"The company still has an outstanding balance of two thousand dollars on its account."},
+{id:"v116", day:12, word:"remit", pos:"v.", meaning:"송금하다", ex:"Please remit the payment to the bank account listed at the bottom of the invoice."},
+{id:"v117", day:12, word:"receipt", pos:"n.", meaning:"영수증; 수령", ex:"Keep your receipt in case you need to exchange the item within fourteen days."},
+{id:"v118", day:12, word:"statement", pos:"n.", meaning:"명세서, 성명", ex:"Your monthly statement shows all deposits and withdrawals made during the month of September."},
+{id:"v119", day:12, word:"waive", pos:"v.", meaning:"면제하다", ex:"The hotel agreed to waive the cancellation fee because of the flight delay."},
+{id:"v120", day:12, word:"in full", pos:"phr.", meaning:"전액, 완전히", ex:"The invoice must be paid in full before the goods are released from the warehouse."},
+{id:"v121", day:13, word:"investment", pos:"n.", meaning:"투자", ex:"The board approved a major investment in renewable energy for the manufacturing plant."},
+{id:"v122", day:13, word:"shareholder", pos:"n.", meaning:"주주", ex:"Every shareholder will receive a copy of the annual report before the general meeting."},
+{id:"v123", day:13, word:"dividend", pos:"n.", meaning:"배당금", ex:"The company announced a higher dividend after a record year of profits."},
+{id:"v124", day:13, word:"merger", pos:"n.", meaning:"합병", ex:"The merger between the two airlines is expected to be completed by early next year."},
+{id:"v125", day:13, word:"acquire", pos:"v.", meaning:"인수하다, 획득하다", ex:"The firm plans to acquire a smaller competitor to expand its presence in Europe."},
+{id:"v126", day:13, word:"asset", pos:"n.", meaning:"자산", ex:"Real estate remains the company's most valuable asset according to the latest audit."},
+{id:"v127", day:13, word:"bankrupt", pos:"adj.", meaning:"파산한", ex:"The retailer went bankrupt after three years of declining sales and rising rent."},
+{id:"v128", day:13, word:"fluctuate", pos:"v.", meaning:"변동하다", ex:"Prices for raw materials tend to fluctuate depending on the season and global demand."},
+{id:"v129", day:13, word:"substantially", pos:"adv.", meaning:"상당히", ex:"Operating costs have fallen substantially since the company moved to a smaller office."},
+{id:"v130", day:13, word:"forecast", pos:"n.", meaning:"예측, 전망", ex:"The sales forecast for next quarter looks promising thanks to new overseas orders."},
+{id:"v131", day:14, word:"cargo", pos:"n.", meaning:"화물", ex:"The cargo was loaded onto the ship late Tuesday night and will arrive in two weeks."},
+{id:"v132", day:14, word:"customs", pos:"n.", meaning:"세관", ex:"The package was held at customs for three days because the paperwork was incomplete."},
+{id:"v133", day:14, word:"tariff", pos:"n.", meaning:"관세", ex:"A new tariff on imported steel will raise production costs for many manufacturers."},
+{id:"v134", day:14, word:"clearance", pos:"n.", meaning:"통관; 정리", ex:"Customs clearance usually takes one or two days for shipments arriving from overseas."},
+{id:"v135", day:14, word:"destination", pos:"n.", meaning:"목적지", ex:"The driver confirmed that the goods reached their destination without any damage."},
+{id:"v136", day:14, word:"delay", pos:"n.", meaning:"지연", ex:"A delay at the port means the furniture will not arrive until next Thursday."},
+{id:"v137", day:14, word:"consignment", pos:"n.", meaning:"위탁 화물, 탁송품", ex:"The consignment of textiles was inspected carefully before being released to the buyer."},
+{id:"v138", day:14, word:"perishable", pos:"adj.", meaning:"상하기 쉬운", ex:"Perishable goods such as fruit must be stored in the refrigerated section of the truck."},
+{id:"v139", day:14, word:"securely", pos:"adv.", meaning:"안전하게, 단단히", ex:"Make sure every box is sealed securely before it is placed on the pallet."},
+{id:"v140", day:14, word:"prior to", pos:"phr.", meaning:"~에 앞서", ex:"All shipping labels must be printed prior to the courier's arrival at four o'clock."},
+{id:"v141", day:15, word:"campaign", pos:"n.", meaning:"캠페인, 홍보 활동", ex:"The advertising campaign for the new phone will begin on social media next month."},
+{id:"v142", day:15, word:"brochure", pos:"n.", meaning:"소책자, 안내 책자", ex:"You can find detailed pricing information in the brochure available at the reception desk."},
+{id:"v143", day:15, word:"launch", pos:"v.", meaning:"출시하다", ex:"The company will launch its first electric scooter at the trade show in Berlin."},
+{id:"v144", day:15, word:"distribute", pos:"v.", meaning:"배포하다, 유통하다", ex:"Volunteers will distribute free samples to shoppers at the entrance of the mall."},
+{id:"v145", day:15, word:"target", pos:"v.", meaning:"목표로 삼다, 겨냥하다", ex:"The new line of sportswear is designed to target young professionals in their twenties."},
+{id:"v146", day:15, word:"consumer", pos:"n.", meaning:"소비자", ex:"Consumer demand for organic products has increased steadily over the past five years."},
+{id:"v147", day:15, word:"brand", pos:"n.", meaning:"브랜드, 상표", ex:"Our brand is widely known for reliable kitchen appliances sold at reasonable prices."},
+{id:"v148", day:15, word:"competitive", pos:"adj.", meaning:"경쟁력 있는, 경쟁의", ex:"We offer competitive prices and free delivery to stay ahead of other online retailers."},
+{id:"v149", day:15, word:"widely", pos:"adv.", meaning:"널리", ex:"The new logo has been widely praised by customers and design experts alike."},
+{id:"v150", day:15, word:"appeal to", pos:"phr.", meaning:"~의 관심을 끌다", ex:"The colorful packaging is intended to appeal to younger customers who shop online."},
+{id:"v151", day:16, word:"survey", pos:"n.", meaning:"설문 조사", ex:"Results of the customer survey will help us improve the layout of our stores."},
+{id:"v152", day:16, word:"feedback", pos:"n.", meaning:"피드백, 의견", ex:"We welcome feedback from users so that we can fix problems in the next update."},
+{id:"v153", day:16, word:"demand", pos:"n.", meaning:"수요", ex:"Demand for the winter jackets was so high that the factory added a night shift."},
+{id:"v154", day:16, word:"strategy", pos:"n.", meaning:"전략", ex:"The new marketing strategy focuses on building long-term relationships with our most loyal customers."},
+{id:"v155", day:16, word:"publicity", pos:"n.", meaning:"홍보, 널리 알려짐", ex:"The charity event generated a great deal of publicity for the sponsoring companies."},
+{id:"v156", day:16, word:"sponsor", pos:"v.", meaning:"후원하다", ex:"Several local businesses agreed to sponsor the marathon in exchange for advertising space."},
+{id:"v157", day:16, word:"endorse", pos:"v.", meaning:"지지하다, 보증하다", ex:"A famous athlete has agreed to endorse our new line of running shoes."},
+{id:"v158", day:16, word:"innovative", pos:"adj.", meaning:"혁신적인", ex:"The award recognizes small companies that develop innovative solutions to everyday workplace problems."},
+{id:"v159", day:16, word:"increasingly", pos:"adv.", meaning:"점점 더", ex:"Customers are increasingly choosing to shop through mobile apps rather than in stores."},
+{id:"v160", day:16, word:"in response to", pos:"phr.", meaning:"~에 대응하여", ex:"In response to customer requests, the cafe now opens one hour earlier on weekdays."},
+{id:"v161", day:17, word:"itinerary", pos:"n.", meaning:"여행 일정표", ex:"Your itinerary includes a two-day stay in Osaka followed by meetings in Tokyo."},
+{id:"v162", day:17, word:"lodging", pos:"n.", meaning:"숙박, 숙소", ex:"The company will cover lodging and meals for employees attending the conference in Chicago."},
+{id:"v163", day:17, word:"reservation", pos:"n.", meaning:"예약", ex:"I made a reservation for a table of six at the restaurant near the hotel."},
+{id:"v164", day:17, word:"fare", pos:"n.", meaning:"요금, 운임", ex:"The train fare from the airport to downtown is about twenty dollars each way."},
+{id:"v165", day:17, word:"depart", pos:"v.", meaning:"출발하다", ex:"The shuttle bus will depart from the hotel lobby every thirty minutes."},
+{id:"v166", day:17, word:"confirm", pos:"v.", meaning:"확인하다, 확정하다", ex:"Please confirm your flight details by replying to this email before Wednesday afternoon."},
+{id:"v167", day:17, word:"layover", pos:"n.", meaning:"경유, 중간 기착", ex:"There is a three-hour layover in Singapore before the connecting flight to Sydney."},
+{id:"v168", day:17, word:"round-trip", pos:"adj.", meaning:"왕복의", ex:"A round-trip ticket to Hong Kong costs less if you book at least two weeks ahead."},
+{id:"v169", day:17, word:"aboard", pos:"adv.", meaning:"탑승하여", ex:"Passengers must be aboard the ferry at least fifteen minutes before it leaves the dock."},
+{id:"v170", day:17, word:"en route", pos:"phr.", meaning:"도중에", ex:"The sales director is en route to Frankfurt and will call you when she lands."},
+{id:"v171", day:18, word:"venue", pos:"n.", meaning:"장소, 개최지", ex:"The venue for this year's awards dinner can seat up to three hundred guests."},
+{id:"v172", day:18, word:"banquet", pos:"n.", meaning:"연회", ex:"A farewell banquet will be held in honor of the retiring vice president."},
+{id:"v173", day:18, word:"keynote", pos:"n.", meaning:"기조연설", ex:"The keynote speech will be delivered by the founder of a leading technology company."},
+{id:"v174", day:18, word:"registration", pos:"n.", meaning:"등록", ex:"Early registration for the conference closes on August 15, so sign up soon."},
+{id:"v175", day:18, word:"exhibit", pos:"v.", meaning:"전시하다", ex:"More than two hundred companies will exhibit their latest products at the trade fair."},
+{id:"v176", day:18, word:"host", pos:"v.", meaning:"주최하다", ex:"Our office will host a reception for visiting clients on the evening of May 3."},
+{id:"v177", day:18, word:"catering", pos:"n.", meaning:"음식 공급(업)", ex:"The catering company needs the final number of guests by the end of the week."},
+{id:"v178", day:18, word:"complimentary", pos:"adj.", meaning:"무료의", ex:"Complimentary refreshments will be served in the lobby during the morning break."},
+{id:"v179", day:18, word:"annual", pos:"adj.", meaning:"연례의", ex:"The annual company picnic will be held at Riverside Park on the last Saturday in June."},
+{id:"v180", day:18, word:"beforehand", pos:"adv.", meaning:"사전에, 미리", ex:"If you have special dietary needs, please let the organizers know beforehand."},
+{id:"v181", day:19, word:"complaint", pos:"n.", meaning:"불만, 항의", ex:"We received a complaint about the noise coming from the construction site next door."},
+{id:"v182", day:19, word:"inquiry", pos:"n.", meaning:"문의", ex:"Thank you for your inquiry about our bulk pricing for office supplies."},
+{id:"v183", day:19, word:"refund", pos:"n.", meaning:"환불", ex:"Customers who are not satisfied may request a full refund within thirty days of purchase."},
+{id:"v184", day:19, word:"apologize", pos:"v.", meaning:"사과하다", ex:"We apologize for the inconvenience caused by the late delivery of your order."},
+{id:"v185", day:19, word:"resolve", pos:"v.", meaning:"해결하다", ex:"Our support team will resolve the billing issue within two business days."},
+{id:"v186", day:19, word:"courteous", pos:"adj.", meaning:"정중한", ex:"The hotel staff were courteous and helpful throughout our three-day stay in Vancouver."},
+{id:"v187", day:19, word:"satisfaction", pos:"n.", meaning:"만족", ex:"Customer satisfaction scores rose sharply after we shortened the waiting time on the phone."},
+{id:"v188", day:19, word:"warranty", pos:"n.", meaning:"품질 보증(서)", ex:"The laptop comes with a two-year warranty that covers parts and labor."},
+{id:"v189", day:19, word:"sincerely", pos:"adv.", meaning:"진심으로", ex:"We sincerely regret the error on your bill and have corrected it immediately."},
+{id:"v190", day:19, word:"look into", pos:"phr.", meaning:"~을 조사하다", ex:"A representative will look into the problem and contact you with an answer by Friday."},
+{id:"v191", day:20, word:"subscription", pos:"n.", meaning:"구독", ex:"Your subscription to the magazine will be renewed automatically unless you cancel it."},
+{id:"v192", day:20, word:"membership", pos:"n.", meaning:"회원 (자격)", ex:"Gym membership fees will increase slightly in January to cover the cost of new equipment."},
+{id:"v193", day:20, word:"voucher", pos:"n.", meaning:"상품권, 할인권", ex:"Each guest will receive a voucher for a free dessert at the hotel restaurant."},
+{id:"v194", day:20, word:"loyalty", pos:"n.", meaning:"충성(도), 단골", ex:"Our loyalty program rewards frequent shoppers with points that can be exchanged for gifts."},
+{id:"v195", day:20, word:"redeem", pos:"v.", meaning:"(쿠폰 등을) 사용하다, 상환하다", ex:"You can redeem your points for discounts on future purchases at any of our stores."},
+{id:"v196", day:20, word:"eligible", pos:"adj.", meaning:"자격이 있는", ex:"Only full-time employees are eligible for the company's tuition assistance program this year."},
+{id:"v197", day:20, word:"exclusive", pos:"adj.", meaning:"독점적인, 전용의", ex:"Members receive exclusive access to sales events before they open to the public."},
+{id:"v198", day:20, word:"affordable", pos:"adj.", meaning:"(가격이) 알맞은", ex:"The new tablet is an affordable option for students who need a lightweight device."},
+{id:"v199", day:20, word:"considerably", pos:"adv.", meaning:"상당히", ex:"Waiting times at the service counter have been reduced considerably since the renovation."},
+{id:"v200", day:20, word:"free of charge", pos:"phr.", meaning:"무료로", ex:"Delivery is free of charge for orders over fifty dollars placed through our website."},
+{id:"v201", day:21, word:"luggage", pos:"n.", meaning:"수하물, 짐", ex:"Passengers may leave their luggage at the hotel's front desk until their rooms are ready."},
+{id:"v202", day:21, word:"commute", pos:"n.", meaning:"통근", ex:"My daily commute takes about forty minutes by subway from the eastern suburbs."},
+{id:"v203", day:21, word:"shuttle", pos:"n.", meaning:"셔틀버스", ex:"A free shuttle runs between the airport terminal and the convention center every hour."},
+{id:"v204", day:21, word:"detour", pos:"n.", meaning:"우회로", ex:"Drivers should expect a detour on Main Street while the bridge is being repaired."},
+{id:"v205", day:21, word:"toll", pos:"n.", meaning:"통행료", ex:"The toll for crossing the new bridge will be five dollars for passenger cars."},
+{id:"v206", day:21, word:"congestion", pos:"n.", meaning:"혼잡", ex:"To avoid traffic congestion, the delivery trucks now leave the depot before six."},
+{id:"v207", day:21, word:"terminal", pos:"n.", meaning:"터미널", ex:"International flights depart from Terminal 2, which is a ten-minute walk from here."},
+{id:"v208", day:21, word:"scenic", pos:"adj.", meaning:"경치가 좋은", ex:"The scenic route along the coast adds twenty minutes but offers wonderful views."},
+{id:"v209", day:21, word:"conveniently", pos:"adv.", meaning:"편리하게", ex:"The hotel is conveniently located within walking distance of the central train station."},
+{id:"v210", day:21, word:"pick up", pos:"phr.", meaning:"~을 데리러 가다, 찾아오다", ex:"A driver will pick up the visiting executives at the airport at seven in the evening."},
+{id:"v211", day:22, word:"accommodate", pos:"v.", meaning:"수용하다, 편의를 제공하다", ex:"The new conference hall can accommodate up to five hundred people for large events."},
+{id:"v212", day:22, word:"deteriorate", pos:"v.", meaning:"악화되다", ex:"The condition of the old warehouse roof began to deteriorate after years of heavy rain."},
+{id:"v213", day:22, word:"tentative", pos:"adj.", meaning:"잠정적인", ex:"We have set a tentative date for the product launch, pending approval from the board."},
+{id:"v214", day:22, word:"discrepancy", pos:"n.", meaning:"불일치, 차이", ex:"The auditor found a discrepancy between the sales records and the bank deposits."},
+{id:"v215", day:22, word:"adjacent", pos:"adj.", meaning:"인접한", ex:"The company rented the adjacent building to make room for its growing staff."},
+{id:"v216", day:22, word:"provisional", pos:"adj.", meaning:"임시의, 잠정적인", ex:"A provisional schedule will be sent out today, and the final version will follow next week."},
+{id:"v217", day:22, word:"unanimously", pos:"adv.", meaning:"만장일치로", ex:"The board voted unanimously to appoint Ms. Nakamura as the new chief executive."},
+{id:"v218", day:22, word:"lucrative", pos:"adj.", meaning:"수익성이 좋은", ex:"The consulting firm signed a lucrative contract with a major automobile manufacturer."},
+{id:"v219", day:22, word:"stipulate", pos:"v.", meaning:"규정하다, 명시하다", ex:"The agreement stipulates that all payments must be made within forty-five days."},
+{id:"v220", day:22, word:"in lieu of", pos:"phr.", meaning:"~ 대신에", ex:"Employees who work on the holiday may take a day off in lieu of extra pay."},
+{id:"v221", day:23, word:"pertaining to", pos:"phr.", meaning:"~에 관한", ex:"Please direct any questions pertaining to the new insurance plan to the human resources office."},
+{id:"v222", day:23, word:"implement", pos:"v.", meaning:"시행하다", ex:"The company will implement a new flexible working policy starting next quarter."},
+{id:"v223", day:23, word:"initiative", pos:"n.", meaning:"계획, 주도권", ex:"The recycling initiative has reduced the amount of office waste by nearly thirty percent."},
+{id:"v224", day:23, word:"allocate", pos:"v.", meaning:"할당하다", ex:"Management decided to allocate additional funds to the research and development department."},
+{id:"v225", day:23, word:"assess", pos:"v.", meaning:"평가하다", ex:"An outside consultant was hired to assess the efficiency of our shipping procedures."},
+{id:"v226", day:23, word:"prominent", pos:"adj.", meaning:"유명한, 두드러진", ex:"A prominent economist will speak at the opening session of the finance conference."},
+{id:"v227", day:23, word:"viable", pos:"adj.", meaning:"실행 가능한", ex:"Opening a second factory is not a viable option until demand increases further."},
+{id:"v228", day:23, word:"subsequently", pos:"adv.", meaning:"그 후에", ex:"The prototype was tested in March and subsequently approved for mass production."},
+{id:"v229", day:23, word:"precaution", pos:"n.", meaning:"예방 조치", ex:"As a precaution, all employees should back up their files before the system upgrade."},
+{id:"v230", day:23, word:"commence", pos:"v.", meaning:"시작하다", ex:"Construction of the new parking structure will commence as soon as the permits are issued."},
+{id:"v231", day:24, word:"adhere to", pos:"phr.", meaning:"~을 준수하다", ex:"All drivers must adhere to the company's safety guidelines when operating delivery vehicles."},
+{id:"v232", day:24, word:"enforce", pos:"v.", meaning:"집행하다, 시행하다", ex:"Security staff will enforce the new rule requiring identification badges at every entrance."},
+{id:"v233", day:24, word:"regulation", pos:"n.", meaning:"규정, 규제", ex:"The factory was fined for violating an environmental regulation on waste disposal."},
+{id:"v234", day:24, word:"violation", pos:"n.", meaning:"위반", ex:"Parking in the loading zone is a violation that may result in a fifty-dollar fine."},
+{id:"v235", day:24, word:"liable", pos:"adj.", meaning:"법적 책임이 있는", ex:"The carrier is liable for any damage that occurs while the goods are in its possession."},
+{id:"v236", day:24, word:"hazardous", pos:"adj.", meaning:"위험한", ex:"Hazardous materials must be stored in a locked cabinet away from the main work area."},
+{id:"v237", day:24, word:"audit", pos:"n.", meaning:"회계 감사", ex:"The annual audit revealed several minor errors in the travel expense reports."},
+{id:"v238", day:24, word:"strictly", pos:"adv.", meaning:"엄격히", ex:"Smoking is strictly prohibited inside the warehouse and within ten meters of the entrance."},
+{id:"v239", day:24, word:"penalty", pos:"n.", meaning:"벌금, 처벌", ex:"Suppliers who miss the delivery date will pay a penalty of two percent per week."},
+{id:"v240", day:24, word:"retain", pos:"v.", meaning:"보유하다, 유지하다", ex:"Please retain a copy of this receipt for your records in case of a dispute."},
+{id:"v241", day:25, word:"abundant", pos:"adj.", meaning:"풍부한", ex:"The region has an abundant supply of skilled workers, which attracted several manufacturers."},
+{id:"v242", day:25, word:"surplus", pos:"n.", meaning:"잉여, 흑자", ex:"The company donated its surplus office furniture to a local community center."},
+{id:"v243", day:25, word:"shortage", pos:"n.", meaning:"부족", ex:"A shortage of microchips has forced the automaker to slow production this month."},
+{id:"v244", day:25, word:"diminish", pos:"v.", meaning:"줄어들다, 감소시키다", ex:"Interest in the product began to diminish once a cheaper alternative appeared on the market."},
+{id:"v245", day:25, word:"obsolete", pos:"adj.", meaning:"구식의", ex:"The old accounting software became obsolete after the company adopted a cloud-based system."},
+{id:"v246", day:25, word:"upgrade", pos:"v.", meaning:"개선하다, 업그레이드하다", ex:"We plan to upgrade the network this summer to support more remote employees."},
+{id:"v247", day:25, word:"streamline", pos:"v.", meaning:"간소화하다", ex:"The new software will streamline the ordering process and reduce paperwork for staff."},
+{id:"v248", day:25, word:"productivity", pos:"n.", meaning:"생산성", ex:"Factory productivity rose by eight percent after the assembly line was reorganized last spring."},
+{id:"v249", day:25, word:"notably", pos:"adv.", meaning:"특히, 현저히", ex:"Several departments, most notably sales and marketing, exceeded their annual targets this year."},
+{id:"v250", day:25, word:"in accordance with", pos:"phr.", meaning:"~에 따라", ex:"All chemicals are labeled in accordance with the latest government safety standards."},
+{id:"v251", day:26, word:"collaborate", pos:"v.", meaning:"협력하다", ex:"Engineers from both companies will collaborate on the design of the new battery."},
+{id:"v252", day:26, word:"counterpart", pos:"n.", meaning:"상대방, 대응 관계에 있는 사람", ex:"The marketing director met with her counterpart from the Tokyo office to discuss the campaign."},
+{id:"v253", day:26, word:"affiliate", pos:"n.", meaning:"계열사, 제휴사", ex:"The bank's overseas affiliate handles most of the company's international transactions in Asia."},
+{id:"v254", day:26, word:"subsidiary", pos:"n.", meaning:"자회사", ex:"The electronics maker opened a subsidiary in Vietnam to produce components for export."},
+{id:"v255", day:26, word:"headquarters", pos:"n.", meaning:"본사", ex:"The company moved its headquarters from Boston to Austin to reduce operating costs."},
+{id:"v256", day:26, word:"relocate", pos:"v.", meaning:"이전하다", ex:"The firm will relocate its distribution center to a larger site near the highway."},
+{id:"v257", day:26, word:"expand", pos:"v.", meaning:"확장하다", ex:"The restaurant chain plans to expand into three new cities over the next two years."},
+{id:"v258", day:26, word:"overseas", pos:"adv.", meaning:"해외로, 해외에서", ex:"About forty percent of our products are sold overseas, mainly in Europe and Southeast Asia."},
+{id:"v259", day:26, word:"prospective", pos:"adj.", meaning:"장래의, 유망한", ex:"Prospective clients can request a free demonstration of the software through our website."},
+{id:"v260", day:26, word:"be subject to", pos:"phr.", meaning:"~의 대상이다, ~을 받기 쉽다", ex:"Prices listed in the catalog may be subject to change without prior notice from the publisher."},
+{id:"v261", day:27, word:"anticipate", pos:"v.", meaning:"예상하다", ex:"We anticipate a sharp increase in orders during the weeks before the holiday season."},
+{id:"v262", day:27, word:"outcome", pos:"n.", meaning:"결과", ex:"The outcome of the negotiations will be announced at a press conference on Monday."},
+{id:"v263", day:27, word:"acknowledge", pos:"v.", meaning:"인정하다; 받았음을 알리다", ex:"Please acknowledge receipt of this message so we know the documents arrived safely."},
+{id:"v264", day:27, word:"emphasize", pos:"v.", meaning:"강조하다", ex:"The trainer will emphasize the importance of wearing protective gloves at all times."},
+{id:"v265", day:27, word:"reluctant", pos:"adj.", meaning:"꺼리는, 주저하는", ex:"Some managers were reluctant to approve remote work, but productivity has not declined."},
+{id:"v266", day:27, word:"persuasive", pos:"adj.", meaning:"설득력 있는", ex:"Her persuasive presentation convinced the investors to fund the second phase of the project."},
+{id:"v267", day:27, word:"criteria", pos:"n.", meaning:"기준", ex:"Applicants will be judged according to the criteria listed on the scholarship website."},
+{id:"v268", day:27, word:"meticulous", pos:"adj.", meaning:"꼼꼼한", ex:"The accountant is meticulous about checking every figure before filing the tax return."},
+{id:"v269", day:27, word:"readily", pos:"adv.", meaning:"손쉽게, 선뜻", ex:"Replacement parts for the older models are still readily available from our distributors."},
+{id:"v270", day:27, word:"as of", pos:"phr.", meaning:"~ 현재로, ~부로", ex:"As of January 1, the office will be closed on Saturdays until further notice."},
+{id:"v271", day:28, word:"dedicated", pos:"adj.", meaning:"헌신적인; 전용의", ex:"A dedicated customer service line has been set up for questions about the recall."},
+{id:"v272", day:28, word:"versatile", pos:"adj.", meaning:"다재다능한, 다용도의", ex:"This versatile printer can scan, copy, and fax documents in addition to printing."},
+{id:"v273", day:28, word:"exceptional", pos:"adj.", meaning:"뛰어난, 예외적인", ex:"Ms. Alvarez received an award for her exceptional service to clients over the past decade."},
+{id:"v274", day:28, word:"modest", pos:"adj.", meaning:"적당한, 겸손한", ex:"The company expects only a modest increase in sales during the first quarter."},
+{id:"v275", day:28, word:"preliminary", pos:"adj.", meaning:"예비의", ex:"Preliminary results from the survey suggest that most customers prefer the new design."},
+{id:"v276", day:28, word:"revise", pos:"v.", meaning:"수정하다", ex:"Please revise the budget proposal to reflect the higher cost of raw materials."},
+{id:"v277", day:28, word:"draft", pos:"n.", meaning:"초안", ex:"The first draft of the annual report is due to the editor by next Friday."},
+{id:"v278", day:28, word:"amendment", pos:"n.", meaning:"수정 (조항)", ex:"An amendment to the lease allows the tenant to install signage on the exterior wall."},
+{id:"v279", day:28, word:"otherwise", pos:"adv.", meaning:"그렇지 않으면; 달리", ex:"Register by Monday; otherwise, you will have to pay the higher on-site fee."},
+{id:"v280", day:28, word:"on short notice", pos:"phr.", meaning:"촉박한 통보로, 갑자기", ex:"The caterer was able to prepare lunch for thirty extra guests on short notice."},
+{id:"v281", day:29, word:"reputable", pos:"adj.", meaning:"평판이 좋은", ex:"We only purchase electronic components from reputable suppliers with proven safety records."},
+{id:"v282", day:29, word:"consecutive", pos:"adj.", meaning:"연속적인", ex:"The software company has reported rising profits for six consecutive quarters, pleasing investors."},
+{id:"v283", day:29, word:"prestigious", pos:"adj.", meaning:"명망 있는", ex:"The architect received a prestigious award for designing the city's new public library."},
+{id:"v284", day:29, word:"sturdy", pos:"adj.", meaning:"튼튼한", ex:"These sturdy shelves can hold up to two hundred kilograms of inventory each."},
+{id:"v285", day:29, word:"outlet", pos:"n.", meaning:"매장, 할인점; 콘센트", ex:"The clothing brand will open a new outlet in the shopping district next month."},
+{id:"v286", day:29, word:"premises", pos:"n.", meaning:"구내, 부지", ex:"Visitors must wear a badge at all times while they are on the premises."},
+{id:"v287", day:29, word:"utility", pos:"n.", meaning:"공공요금, 공익사업", ex:"Monthly utility bills for the office have gone up because of the summer heat."},
+{id:"v288", day:29, word:"residential", pos:"adj.", meaning:"주거의", ex:"The developer plans to build a residential complex next to the new train station."},
+{id:"v289", day:29, word:"overwhelmingly", pos:"adv.", meaning:"압도적으로", ex:"Employees overwhelmingly supported the proposal to extend flexible working hours to all departments."},
+{id:"v290", day:29, word:"in a timely manner", pos:"phr.", meaning:"시기적절하게", ex:"Please respond to customer inquiries in a timely manner to maintain our service ratings."},
+{id:"v291", day:30, word:"withdraw", pos:"v.", meaning:"인출하다; 철회하다", ex:"You can withdraw cash from any of the bank's machines without paying a fee."},
+{id:"v292", day:30, word:"contingency", pos:"n.", meaning:"비상사태, 만일의 경우", ex:"The project manager prepared a contingency plan in case the supplier fails to deliver."},
+{id:"v293", day:30, word:"incur", pos:"v.", meaning:"(비용을) 발생시키다, 초래하다", ex:"Employees who cancel their flights late may incur additional charges from the airline."},
+{id:"v294", day:30, word:"yield", pos:"v.", meaning:"(수익 등을) 내다, 산출하다", ex:"The new advertising approach is expected to yield higher returns than last year's campaign."},
+{id:"v295", day:30, word:"compromise", pos:"n.", meaning:"타협", ex:"After hours of discussion, both sides agreed to a compromise on the delivery schedule."},
+{id:"v296", day:30, word:"inevitable", pos:"adj.", meaning:"피할 수 없는", ex:"Some delays are inevitable when a company moves its entire operation to a new building."},
+{id:"v297", day:30, word:"exempt", pos:"adj.", meaning:"면제된", ex:"Nonprofit organizations are exempt from the sales tax on office supplies in this state."},
+{id:"v298", day:30, word:"elaborate", pos:"v.", meaning:"자세히 설명하다", ex:"Could you elaborate on how the new system will reduce our shipping costs?"},
+{id:"v299", day:30, word:"ultimately", pos:"adv.", meaning:"결국, 궁극적으로", ex:"The decision to open an overseas branch ultimately rests with the board of directors."},
+{id:"v300", day:30, word:"ahead of schedule", pos:"phr.", meaning:"예정보다 빨리", ex:"The construction crew finished the renovation two weeks ahead of schedule and under budget."}
+];
+
+// Part 5 150문항
+const PART5 = [
+{id:"p5-001", week:1, type:"품사", q:"Halden Logistics announced a ------ increase in shipping rates effective next month.", choices:["significant","significantly","signify","significance"], answer:0, exp:"핵심: 관사 a와 명사 increase 사이는 형용사 자리. 이유: 명사를 수식하는 형용사 significant가 정답."},
+{id:"p5-002", week:1, type:"품사", q:"The new software was installed ------ by the IT department over the weekend.", choices:["successful","success","succeed","successfully"], answer:3, exp:"핵심: 완전한 수동태 문장 뒤는 부사 자리. 이유: 동사 was installed를 수식하므로 부사 successfully."},
+{id:"p5-003", week:1, type:"품사", q:"Employees must submit their expense reports ------ to receive reimbursement on time.", choices:["prompt","promptly","promptness","prompted"], answer:1, exp:"핵심: 목적어 뒤 완전한 문장, 부사 자리. 이유: 동사 submit을 수식하는 부사 promptly가 적절."},
+{id:"p5-004", week:1, type:"품사", q:"Ms. Tanaka's ------ to the project was recognized at the annual awards ceremony.", choices:["contribute","contributed","contribution","contributive"], answer:2, exp:"핵심: 소유격 뒤 주어 역할의 명사 자리. 이유: Ms. Tanaka's 뒤에 명사 contribution이 와야 함."},
+{id:"p5-005", week:1, type:"품사", q:"The committee reviewed each ------ carefully before making a final decision.", choices:["propose","proposed","proposing","proposal"], answer:3, exp:"핵심: each 뒤 단수 명사 자리. 이유: reviewed의 목적어로 명사 proposal이 필요."},
+{id:"p5-006", week:1, type:"품사", q:"Mireo Consulting offers ------ advice to small businesses seeking to expand overseas.", choices:["professional","professionally","profession","professionalism"], answer:0, exp:"핵심: 명사 advice 앞 형용사 자리. 이유: 명사를 수식하는 형용사 professional이 정답."},
+{id:"p5-007", week:1, type:"품사", q:"All visitors are required to wear identification badges ------ while on the premises.", choices:["visible","visibility","visibly","visualize"], answer:2, exp:"핵심: 목적어 뒤 완전한 문장, 부사 자리. 이유: wear를 수식하는 부사 visibly가 적절."},
+{id:"p5-008", week:1, type:"품사", q:"The ------ of the new warehouse is expected to take approximately eight months.", choices:["construct","constructive","constructively","construction"], answer:3, exp:"핵심: 관사 The 뒤, 전치사 of 앞 명사 자리. 이유: 주어 역할을 하는 명사 construction."},
+{id:"p5-009", week:1, type:"품사", q:"Our customer service representatives are trained to respond ------ to complaints.", choices:["courteous","courtesy","courteously","courtesies"], answer:2, exp:"핵심: 자동사 respond 뒤 부사 자리. 이유: 동사를 수식하므로 부사 courteously."},
+{id:"p5-010", week:1, type:"품사", q:"The board expressed ------ about the company's expansion into the Asian market.", choices:["optimism","optimistic","optimistically","optimize"], answer:0, exp:"핵심: 타동사 expressed의 목적어 자리. 이유: 명사 optimism이 목적어로 적절."},
+{id:"p5-011", week:1, type:"품사", q:"The revised budget must be ------ by the finance director before Friday.", choices:["approve","approved","approval","approving"], answer:1, exp:"핵심: must be + 과거분사 수동태. 이유: by 행위자가 있으므로 수동형 approved."},
+{id:"p5-012", week:1, type:"품사", q:"Bravo Textiles has ------ reduced its production costs by switching suppliers.", choices:["consider","considerable","considerably","consideration"], answer:2, exp:"핵심: has와 과거분사 reduced 사이는 부사 자리. 이유: 동사를 수식하는 부사 considerably."},
+{id:"p5-013", week:1, type:"시제", q:"By the time the auditors arrive next week, the accounting team ------ all the records.", choices:["will have organized","organized","has organized","was organizing"], answer:0, exp:"핵심: By the time + 현재시제 → 미래완료. 이유: 미래 시점까지 완료될 일이므로 will have organized."},
+{id:"p5-014", week:1, type:"시제", q:"Mr. Okafor ------ for Halden Logistics since it was founded in 2009.", choices:["works","has worked","is working","worked"], answer:1, exp:"핵심: since + 과거 시점 → 현재완료. 이유: 과거부터 지금까지 계속이므로 has worked."},
+{id:"p5-015", week:1, type:"시제", q:"The shipment ------ at the Rotterdam port two days ago, according to the tracking system.", choices:["arrives","will arrive","has arrived","arrived"], answer:3, exp:"핵심: two days ago → 과거시제. 이유: 명확한 과거 시점 부사구가 있으므로 arrived."},
+{id:"p5-016", week:1, type:"시제", q:"While the technician ------ the printer, the power suddenly went out.", choices:["repairs","was repairing","has repaired","will repair"], answer:1, exp:"핵심: While + 과거 진행 중 사건. 이유: 주절이 과거(went out)이므로 과거진행 was repairing."},
+{id:"p5-017", week:1, type:"시제", q:"If the weather improves, the outdoor product launch ------ as scheduled on Saturday.", choices:["proceeded","has proceeded","will proceed","proceeding"], answer:2, exp:"핵심: 조건절 현재시제, 주절 미래시제. 이유: 미래의 일을 나타내므로 will proceed."},
+{id:"p5-018", week:1, type:"시제", q:"The company ------ its headquarters to Lisbon before the merger was announced last year.", choices:["has relocated","relocates","had relocated","is relocating"], answer:2, exp:"핵심: before + 과거 → 더 앞선 일은 과거완료. 이유: 과거 사건보다 먼저이므로 had relocated."},
+{id:"p5-019", week:1, type:"시제", q:"Ms. Delgado currently ------ a team of twelve analysts in the research division.", choices:["supervised","had supervised","will have supervised","supervises"], answer:3, exp:"핵심: currently → 현재시제. 이유: 3인칭 단수 주어이므로 supervises."},
+{id:"p5-020", week:1, type:"시제", q:"Next Monday, the human resources department ------ orientation sessions for new hires.", choices:["held","holds","has held","will hold"], answer:3, exp:"핵심: Next Monday → 미래시제. 이유: 미래 시점 부사구가 있으므로 will hold."},
+{id:"p5-021", week:1, type:"수일치", q:"Each of the regional managers ------ required to submit a monthly sales forecast.", choices:["is","are","were","have been"], answer:0, exp:"핵심: Each of + 복수명사 → 단수 취급. 이유: 주어 Each는 단수이므로 is."},
+{id:"p5-022", week:1, type:"수일치", q:"The results of the customer survey ------ to be discussed at Thursday's meeting.", choices:["is","are","was","has"], answer:1, exp:"핵심: 주어는 복수 results. 이유: of the customer survey는 수식어, 복수 동사 are."},
+{id:"p5-023", week:1, type:"수일치", q:"Neither the supplier nor the distributors ------ aware of the change in delivery schedule.", choices:["was","is","has been","were"], answer:3, exp:"핵심: neither A nor B는 B에 수일치. 이유: distributors가 복수이므로 were."},
+{id:"p5-024", week:1, type:"수일치", q:"A number of employees ------ volunteered to work extra shifts during the holiday season.", choices:["has","have","is","was"], answer:1, exp:"핵심: A number of + 복수명사 → 복수 취급. 이유: 뒤에 과거분사 volunteered가 있으므로 have."},
+{id:"p5-025", week:1, type:"수일치", q:"The list of approved vendors ------ updated every quarter by the procurement office.", choices:["are","were","is","have been"], answer:2, exp:"핵심: 주어는 단수 list. 이유: of approved vendors는 수식어이므로 단수 동사 is."},
+{id:"p5-026", week:1, type:"수일치", q:"Every applicant for the position ------ to complete a short writing assessment.", choices:["need","needs","needing","are needed"], answer:1, exp:"핵심: Every + 단수명사 → 단수 동사. 이유: 3인칭 단수 주어이므로 needs."},
+{id:"p5-027", week:1, type:"수일치", q:"The manager, along with two assistants, ------ attending the trade fair in Munich.", choices:["are","were","have been","is"], answer:3, exp:"핵심: along with 구는 수일치에 영향 없음. 이유: 주어 The manager가 단수이므로 is."},
+{id:"p5-028", week:1, type:"어휘", q:"Please ------ the attached form and return it to the payroll office by Friday.", choices:["complete","perform","achieve","conduct"], answer:0, exp:"핵심: complete the form = 서식을 작성하다. 이유: form과 어울리는 동사는 complete뿐."},
+{id:"p5-029", week:1, type:"어휘", q:"Due to ------ demand, the Vireo X2 laptop is currently out of stock.", choices:["tall","strong","wide","thick"], answer:1, exp:"핵심: strong demand = 높은 수요. 이유: demand와 결합하는 형용사는 strong."},
+{id:"p5-030", week:1, type:"어휘", q:"The airport hotel offers a ------ shuttle to the terminal every thirty minutes.", choices:["complimentary","voluntary","charitable","generous"], answer:0, exp:"핵심: complimentary shuttle = 무료 셔틀. 이유: 호텔 서비스 문맥에서 '무료'가 자연스러움."},
+{id:"p5-031", week:1, type:"어휘", q:"The new policy is intended to ------ unnecessary paperwork for sales staff.", choices:["dismiss","resign","abandon","eliminate"], answer:3, exp:"핵심: eliminate paperwork = 서류 작업을 없애다. 이유: 불필요한 것을 제거한다는 의미는 eliminate."},
+{id:"p5-032", week:1, type:"어휘", q:"All employees must ------ with the updated safety regulations by March 1.", choices:["agree","comply","follow","obey"], answer:1, exp:"핵심: comply with = ~을 준수하다. 이유: 전치사 with와 함께 쓰이는 동사는 comply."},
+{id:"p5-033", week:1, type:"어휘", q:"Ms. Park was ------ to the position of regional director after only three years.", choices:["raised","lifted","advanced","promoted"], answer:3, exp:"핵심: be promoted to = ~로 승진하다. 이유: 직위로의 승진은 promoted."},
+{id:"p5-034", week:1, type:"어휘", q:"The warranty does not ------ damage caused by improper installation.", choices:["contain","protect","cover","hold"], answer:2, exp:"핵심: warranty covers damage = 보증이 손상을 보장하다. 이유: 보증 범위를 뜻하는 동사는 cover."},
+{id:"p5-035", week:1, type:"어휘", q:"The training session has been ------ until further notice because of the storm.", choices:["postponed","prevented","declined","retired"], answer:0, exp:"핵심: postponed until further notice = 추후 통보까지 연기. 이유: 일정 연기는 postpone."},
+{id:"p5-036", week:2, type:"전치사", q:"The invoice must be paid ------ thirty days of the delivery date.", choices:["within","until","by","during"], answer:0, exp:"핵심: within + 기간 = ~이내에. 이유: thirty days라는 기간 앞이므로 within."},
+{id:"p5-037", week:2, type:"전치사", q:"Mireo Consulting's office is located ------ the fifth floor of the Keller Building.", choices:["in","at","on","by"], answer:2, exp:"핵심: on the + 서수 floor. 이유: 층을 나타낼 때는 전치사 on."},
+{id:"p5-038", week:2, type:"전치사", q:"The seminar on digital marketing has been rescheduled ------ next Thursday.", choices:["to","on","in","for"], answer:3, exp:"핵심: reschedule A for + 시점. 이유: 일정을 특정 날짜로 잡을 때는 for."},
+{id:"p5-039", week:2, type:"전치사", q:"------ its small size, Loma Bakery supplies pastries to over forty cafés in the city.", choices:["Although","Despite","However","Even"], answer:1, exp:"핵심: 뒤에 명사구 its small size → 전치사. 이유: 양보의 전치사 Despite가 정답."},
+{id:"p5-040", week:2, type:"전치사", q:"Employees may not use the loading dock ------ working hours without permission.", choices:["while","among","outside","between"], answer:2, exp:"핵심: outside working hours = 근무시간 외. 이유: 명사구 앞이며 '시간 밖'을 뜻하는 outside."},
+{id:"p5-041", week:2, type:"전치사", q:"All applications must be received ------ 5:00 P.M. on June 15.", choices:["until","by","since","at"], answer:1, exp:"핵심: by + 시점 = ~까지 완료. 이유: 마감 기한을 나타내므로 by."},
+{id:"p5-042", week:2, type:"전치사", q:"The company has seen a steady rise ------ online orders over the past year.", choices:["of","to","in","for"], answer:2, exp:"핵심: a rise in + 명사 = ~의 증가. 이유: 증가·감소 명사 뒤에는 in."},
+{id:"p5-043", week:2, type:"전치사", q:"Please direct any questions ------ the new benefits package to the HR department.", choices:["regarding","according","due","among"], answer:0, exp:"핵심: questions regarding = ~에 관한 질문. 이유: 명사구를 바로 취하는 전치사 regarding."},
+{id:"p5-044", week:2, type:"전치사", q:"The factory will remain closed ------ the end of the renovation project.", choices:["by","since","for","until"], answer:3, exp:"핵심: remain + until = ~까지 계속. 이유: 상태의 지속을 나타내므로 until."},
+{id:"p5-045", week:2, type:"접속사", q:"------ the venue was fully booked, the organizers moved the event to a nearby hotel.", choices:["Because","Despite","Due to","Therefore"], answer:0, exp:"핵심: 뒤에 주어+동사 절 → 접속사. 이유: 이유를 나타내는 접속사 Because."},
+{id:"p5-046", week:2, type:"접속사", q:"Please contact the help desk ------ you experience any issues with the new software.", choices:["so that","unless","in spite of","if"], answer:3, exp:"핵심: 문제가 생기면 연락하라는 조건. 이유: 조건의 접속사 if가 문맥에 맞음."},
+{id:"p5-047", week:2, type:"접속사", q:"The delivery was late, ------ the client was very understanding about the delay.", choices:["so","because","for","but"], answer:3, exp:"핵심: 늦었지만 고객은 이해함 → 대조. 이유: 등위접속사 but이 적절."},
+{id:"p5-048", week:2, type:"접속사", q:"------ the merger is finalized, both companies will continue operating independently.", choices:["Until","During","Despite","Otherwise"], answer:0, exp:"핵심: 절을 이끌며 '~할 때까지'. 이유: During, Despite는 전치사, Until만 접속사로 가능."},
+{id:"p5-049", week:2, type:"접속사", q:"Visitors must sign in at the front desk ------ they can access the laboratory.", choices:["during","prior","before","while"], answer:2, exp:"핵심: 서명 후 출입 가능 → 시간 순서. 이유: 절을 이끄는 접속사 before."},
+{id:"p5-050", week:2, type:"접속사", q:"The product launch will be postponed ------ the marketing materials are approved this week.", choices:["if","because","unless","as"], answer:2, exp:"핵심: 승인되지 않으면 연기 → unless. 이유: '~하지 않는 한'의 조건 접속사."},
+{id:"p5-051", week:2, type:"접속사", q:"------ the sales figures were lower than expected, the board approved the bonus plan.", choices:["Although","Despite","Nevertheless","Because of"], answer:0, exp:"핵심: 절 앞 양보 접속사. 이유: Despite, Because of는 전치사이므로 Although."},
+{id:"p5-052", week:2, type:"접속사", q:"The store will extend its hours ------ customers can shop after work during the holidays.", choices:["in order","so that","as long as","even though"], answer:1, exp:"핵심: so that + 주어 + can = 목적. 이유: 영업시간 연장의 목적을 나타냄."},
+{id:"p5-053", week:2, type:"접속사", q:"Please notify the supervisor ------ by phone or by e-mail if you will be absent.", choices:["neither","both","either","whether"], answer:2, exp:"핵심: either A or B 상관접속사. 이유: 뒤에 or가 있으므로 either."},
+{id:"p5-054", week:2, type:"관계사", q:"The consultant ------ we hired last month has already improved our inventory system.", choices:["which","whose","what","whom"], answer:3, exp:"핵심: 사람 선행사 + 목적격 관계대명사. 이유: hired의 목적어가 빠져 있으므로 whom."},
+{id:"p5-055", week:2, type:"관계사", q:"Halden Logistics operates a warehouse ------ products are stored before export.", choices:["which","where","what","when"], answer:1, exp:"핵심: 장소 선행사 + 완전한 절. 이유: 관계부사 where가 적절."},
+{id:"p5-056", week:2, type:"관계사", q:"Employees ------ performance exceeds expectations will receive an additional bonus.", choices:["who","whom","which","whose"], answer:3, exp:"핵심: 빈칸 뒤 명사 performance → 소유격. 이유: 소유격 관계대명사 whose."},
+{id:"p5-057", week:2, type:"관계사", q:"The report ------ was submitted yesterday contains several calculation errors.", choices:["who","whose","that","what"], answer:2, exp:"핵심: 사물 선행사 + 주격 관계대명사. 이유: 주어 자리가 비었으므로 that."},
+{id:"p5-058", week:2, type:"관계사", q:"Please forward the list of candidates ------ were selected for the final interview.", choices:["who","whom","whose","which"], answer:0, exp:"핵심: 사람 선행사 candidates + 주격. 이유: were의 주어 역할이므로 who."},
+{id:"p5-059", week:2, type:"관계사", q:"------ submits the best design will receive a contract with Ardent Studios.", choices:["Whomever","Whoever","Whatever","However"], answer:1, exp:"핵심: 복합관계대명사가 주어 역할. 이유: submits의 주어이므로 주격 Whoever."},
+{id:"p5-060", week:2, type:"관계사", q:"The hotel, ------ opened in 2015, has become a popular venue for corporate events.", choices:["that","where","which","whose"], answer:2, exp:"핵심: 콤마 뒤 계속적 용법. 이유: that은 불가, 주격 which가 정답."},
+{id:"p5-061", week:2, type:"관계사", q:"Ms. Ruiz explained the reason ------ the shipment had been delayed at customs.", choices:["why","which","when","what"], answer:0, exp:"핵심: the reason + 완전한 절. 이유: 이유를 나타내는 관계부사 why."},
+{id:"p5-062", week:2, type:"분사", q:"The ------ report includes updated figures for the third quarter.", choices:["revise","revising","revision","revised"], answer:3, exp:"핵심: 명사 report 앞, 수정된 보고서. 이유: 수동 의미의 과거분사 revised."},
+{id:"p5-063", week:2, type:"분사", q:"Customers ------ in the loyalty program receive a ten percent discount.", choices:["enroll","enrolled","enrolling","enrollment"], answer:1, exp:"핵심: 본동사 receive가 따로 있음. 이유: 명사를 뒤에서 수식, 등록된 고객이므로 enrolled."},
+{id:"p5-064", week:2, type:"분사", q:"The regional manager found the quarterly sales results quite ------ during the review.", choices:["disappoint","disappointing","disappointed","disappointment"], answer:1, exp:"핵심: 결과가 실망을 주는 것. 이유: 사물 주체이므로 현재분사 disappointing."},
+{id:"p5-065", week:2, type:"분사", q:"------ at the train station, Mr. Ito called the client to confirm the meeting time.", choices:["Arrive","Arrived","Arriving","Arrival"], answer:2, exp:"핵심: 분사구문, 주어 Mr. Ito가 도착함. 이유: 능동이므로 현재분사 Arriving."},
+{id:"p5-066", week:2, type:"분사", q:"Anyone ------ to attend the workshop should register by Wednesday.", choices:["wish","wished","wishes","wishing"], answer:3, exp:"핵심: 본동사 should register가 있음. 이유: Anyone을 수식하는 능동 현재분사 wishing."},
+{id:"p5-067", week:2, type:"분사", q:"The ------ number of online orders has forced the company to hire more staff.", choices:["grow","grown","growing","growth"], answer:2, exp:"핵심: 명사 number 앞 분사 자리. 이유: 증가하고 있는 → 능동 현재분사 growing."},
+{id:"p5-068", week:2, type:"분사", q:"Employees ------ in the survey will receive a small gift card.", choices:["participating","participated","participate","participation"], answer:0, exp:"핵심: 자동사 participate는 수동 불가. 이유: 명사를 수식하는 현재분사 participating."},
+{id:"p5-069", week:2, type:"분사", q:"The ------ contract must be signed by both parties before it becomes effective.", choices:["attach","attaching","attachment","attached"], answer:3, exp:"핵심: 첨부된 계약서 → 수동. 이유: 명사 앞 과거분사 attached."},
+{id:"p5-070", week:2, type:"분사", q:"------ by the heavy traffic, the delivery truck arrived nearly two hours late.", choices:["Delay","Delayed","Delaying","Delays"], answer:1, exp:"핵심: 분사구문 + by 행위자. 이유: 트럭이 지연된 것이므로 수동 과거분사 Delayed."},
+{id:"p5-071", week:3, type:"어휘", q:"The hotel is ------ located within walking distance of the convention center.", choices:["conveniently","closely","quickly","nearly"], answer:0, exp:"핵심: conveniently located = 편리한 위치에. 이유: located와 짝을 이루는 부사는 conveniently."},
+{id:"p5-072", week:3, type:"어휘", q:"Please ------ to the employee handbook for details on the vacation policy.", choices:["look","see","consult","refer"], answer:3, exp:"핵심: refer to = ~을 참조하다. 이유: 전치사 to와 함께 쓰이는 동사는 refer."},
+{id:"p5-073", week:3, type:"어휘", q:"The new printer is ------ with most operating systems currently in use.", choices:["compatible","capable","comparable","competitive"], answer:0, exp:"핵심: compatible with = ~와 호환되는. 이유: 운영체제와 호환 문맥이므로 compatible."},
+{id:"p5-074", week:3, type:"어휘", q:"Tenants are responsible for ------ the apartment in good condition.", choices:["keeping","holding","staying","remaining"], answer:0, exp:"핵심: keep A in good condition. 이유: 목적어를 취해 상태를 유지하는 동사는 keep."},
+{id:"p5-075", week:3, type:"어휘", q:"Orders placed before noon are ------ shipped the same business day.", choices:["closely","lately","typically","barely"], answer:2, exp:"핵심: typically = 보통. 이유: 일반적인 배송 관행을 설명하므로 typically."},
+{id:"p5-076", week:3, type:"어휘", q:"The CEO's speech ------ the importance of innovation in a competitive market.", choices:["insisted","informed","told","emphasized"], answer:3, exp:"핵심: emphasize the importance = 중요성을 강조하다. 이유: 목적어를 직접 취하는 emphasized."},
+{id:"p5-077", week:3, type:"어휘", q:"Please keep your receipt as ------ of purchase in case you need to return the item.", choices:["sign","fact","proof","mark"], answer:2, exp:"핵심: proof of purchase = 구매 증빙. 이유: 영수증의 역할을 나타내는 proof."},
+{id:"p5-078", week:3, type:"어휘", q:"Mireo Consulting has ------ a reputation for delivering projects on time.", choices:["taken","raised","earned","done"], answer:2, exp:"핵심: earn a reputation = 명성을 얻다. 이유: reputation과 결합하는 동사는 earn."},
+{id:"p5-079", week:3, type:"어휘", q:"The job posting lists three years of experience as a ------ for the position.", choices:["demand","requirement","question","need"], answer:1, exp:"핵심: requirement for the position = 자격 요건. 이유: 채용 공고의 조건은 requirement."},
+{id:"p5-080", week:3, type:"어휘", q:"The factory has ------ strict quality control measures to reduce defects.", choices:["performed","operated","implemented","functioned"], answer:2, exp:"핵심: implement measures = 조치를 시행하다. 이유: measures와 어울리는 동사는 implement."},
+{id:"p5-081", week:3, type:"어휘", q:"Due to budget constraints, the marketing department had to ------ its spending on advertising.", choices:["shrink","reduce","fall","decline"], answer:1, exp:"핵심: reduce spending = 지출을 줄이다. 이유: 목적어를 취하는 타동사는 reduce."},
+{id:"p5-082", week:3, type:"어휘", q:"The customer service team ------ over two hundred inquiries every day.", choices:["conducts","treats","handles","cares"], answer:2, exp:"핵심: handle inquiries = 문의를 처리하다. 이유: 문의 처리를 뜻하는 동사는 handle."},
+{id:"p5-083", week:3, type:"어휘", q:"The library's ------ hours during the summer are 9 A.M. to 6 P.M. on weekdays.", choices:["working","acting","running","operating"], answer:3, exp:"핵심: operating hours = 운영 시간. 이유: 시설의 영업시간은 operating hours."},
+{id:"p5-084", week:3, type:"어휘", q:"We ------ that all passengers arrive at the gate at least thirty minutes before departure.", choices:["remind","recommend","inform","tell"], answer:1, exp:"핵심: recommend that + 주어 + 동사원형. 이유: 목적어 없이 that절을 바로 취하는 recommend."},
+{id:"p5-085", week:3, type:"대명사", q:"The marketing director presented ------ proposal to the board on Monday.", choices:["she","hers","herself","her"], answer:3, exp:"핵심: 명사 proposal 앞 소유격. 이유: 명사를 수식하는 소유격 her."},
+{id:"p5-086", week:3, type:"대명사", q:"The new copier is much faster than the ------ we used previously.", choices:["it","one","that","this"], answer:1, exp:"핵심: the one = 앞의 copier를 대신. 이유: 관사 the 뒤에 올 수 있는 부정대명사 one."},
+{id:"p5-087", week:3, type:"대명사", q:"Mr. Chen completed the inventory count ------ because his assistant was away.", choices:["him","his","himself","he"], answer:2, exp:"핵심: 완전한 문장 뒤 강조 용법. 이유: '직접' 했다는 의미의 재귀대명사 himself."},
+{id:"p5-088", week:3, type:"대명사", q:"The invoices from Halden Logistics differ from ------ of other suppliers in format.", choices:["those","that","them","these"], answer:0, exp:"핵심: 복수 명사 invoices의 반복을 피함. 이유: of 수식을 받는 지시대명사 those."},
+{id:"p5-089", week:3, type:"대명사", q:"------ wishing to apply for the position should send a résumé to Ms. Novak.", choices:["Those","They","Them","Whoever"], answer:0, exp:"핵심: Those + 분사 = ~하는 사람들. 이유: 분사의 수식을 받는 대명사는 Those."},
+{id:"p5-090", week:3, type:"비교급", q:"The new model is ------ more energy-efficient than its predecessor.", choices:["very","so","too","much"], answer:3, exp:"핵심: 비교급 강조 부사. 이유: more 앞에서 비교급을 강조하는 much."},
+{id:"p5-091", week:3, type:"비교급", q:"Of all the applicants, Ms. Yoon has the ------ experience in international sales.", choices:["most","more","much","many"], answer:0, exp:"핵심: Of all + the + 최상급. 이유: 셋 이상 비교이므로 최상급 most."},
+{id:"p5-092", week:3, type:"비교급", q:"The second-quarter earnings of Bravo Textiles were ------ than analysts had predicted.", choices:["higher","high","highest","highly"], answer:0, exp:"핵심: than → 비교급. 이유: than과 짝을 이루는 비교급 higher."},
+{id:"p5-093", week:3, type:"비교급", q:"The sooner we finalize the contract, the ------ we can begin production.", choices:["soonest","soon","more soon","sooner"], answer:3, exp:"핵심: the 비교급, the 비교급 구문. 이유: 앞의 The sooner에 맞춰 sooner."},
+{id:"p5-094", week:3, type:"비교급", q:"Halden Logistics delivers packages as ------ as any other courier in the region.", choices:["quick","quicker","quickly","quickest"], answer:2, exp:"핵심: as 원급 as 동등 비교. 이유: 동사 delivers를 수식하므로 부사 quickly."},
+{id:"p5-095", week:3, type:"전치사", q:"The product demonstration will be held ------ the main lobby at 10 A.M.", choices:["at","on","to","in"], answer:3, exp:"핵심: in the lobby = 로비 안에서. 이유: 공간 내부를 나타내는 전치사 in."},
+{id:"p5-096", week:3, type:"전치사", q:"------ accordance with company policy, all travel expenses must be approved in advance.", choices:["In","By","On","At"], answer:0, exp:"핵심: in accordance with = ~에 따라. 이유: 고정 표현이므로 In."},
+{id:"p5-097", week:3, type:"전치사", q:"The new regulations will take effect ------ January 1 of next year.", choices:["in","at","on","from"], answer:2, exp:"핵심: 특정 날짜 앞 on. 이유: January 1처럼 날짜 앞에는 on."},
+{id:"p5-098", week:3, type:"전치사", q:"Mr. Silva was unable to attend the conference ------ a scheduling conflict.", choices:["because","owing to","since","as"], answer:1, exp:"핵심: 뒤에 명사구 → 전치사. 이유: 이유를 나타내는 전치사구 owing to."},
+{id:"p5-099", week:3, type:"접속사", q:"------ the new system is installed, employees will need to reset their passwords.", choices:["Once","Despite","During","Except"], answer:0, exp:"핵심: 절을 이끄는 접속사 자리. 이유: '일단 ~하면'의 접속사 Once."},
+{id:"p5-100", week:3, type:"접속사", q:"The warranty is valid only ------ the product is registered within thirty days.", choices:["unless","so","or","if"], answer:3, exp:"핵심: only if = ~할 경우에만. 이유: 등록이 보증의 조건이므로 if."},
+{id:"p5-101", week:3, type:"접속사", q:"Ms. Haddad will lead the meeting ------ Mr. Byrne is still out of the office.", choices:["during","because of","since","despite"], answer:2, exp:"핵심: 절 앞 이유 접속사. 이유: during, because of, despite는 전치사이므로 since."},
+{id:"p5-102", week:3, type:"접속사", q:"The company offers flexible hours ------ a generous vacation package to all staff.", choices:["in addition","moreover","as well as","also"], answer:2, exp:"핵심: A as well as B = A뿐 아니라 B도. 이유: 명사구를 연결하는 as well as."},
+{id:"p5-103", week:3, type:"품사", q:"The ------ of the two companies created the largest retailer in the region.", choices:["merge","merged","merging","merger"], answer:3, exp:"핵심: The 뒤, of 앞 주어 명사 자리. 이유: 명사 merger가 적절."},
+{id:"p5-104", week:3, type:"품사", q:"The committee will meet ------ to discuss the progress of the renovation.", choices:["weeks","weekly","week","weekend"], answer:1, exp:"핵심: 자동사 meet 뒤 부사 자리. 이유: '매주'를 뜻하는 부사 weekly."},
+{id:"p5-105", week:3, type:"품사", q:"Customer feedback is ------ reviewed by the product development team.", choices:["regular","regularly","regularity","regulate"], answer:1, exp:"핵심: be동사와 과거분사 사이 부사 자리. 이유: 동사를 수식하는 부사 regularly."},
+{id:"p5-106", week:4, type:"가정법/도치", q:"------ the shipment arrived on time, we would not have missed the deadline.", choices:["Had","If","Should","Were"], answer:0, exp:"핵심: 가정법 과거완료 if 생략 도치. 이유: Had + 주어 + p.p. 형태이므로 Had."},
+{id:"p5-107", week:4, type:"가정법/도치", q:"Not only ------ the sales target, but the team also expanded into two new markets.", choices:["the team met","did the team meet","the team did meet","met the team"], answer:1, exp:"핵심: Not only 문두 → 도치. 이유: 조동사 did + 주어 + 동사원형 어순."},
+{id:"p5-108", week:4, type:"가정법/도치", q:"------ you have any questions about the policy, please contact the HR office.", choices:["Had","Were","Should","Unless"], answer:2, exp:"핵심: If you should have의 if 생략 도치. 이유: 동사원형 have 앞이므로 Should."},
+{id:"p5-109", week:4, type:"가정법/도치", q:"If Mireo Consulting ------ a larger office, it could host its own training seminars.", choices:["has","had","will have","having"], answer:1, exp:"핵심: 주절 could + 동사원형 → 가정법 과거. 이유: if절에 과거형 had."},
+{id:"p5-110", week:4, type:"분사", q:"The ------ figures in the annual report were later corrected by the accounting team.", choices:["mislead","misled","misleads","misleading"], answer:3, exp:"핵심: 명사 figures 앞, 오해를 주는 수치. 이유: 능동 의미의 현재분사 misleading."},
+{id:"p5-111", week:4, type:"분사", q:"------ to the rapid growth of the company, the IT department has hired five new technicians.", choices:["Responding","Responded","Response","Respond"], answer:0, exp:"핵심: 분사구문, 주어 IT department가 대응함. 이유: 자동사 respond의 능동 현재분사."},
+{id:"p5-112", week:4, type:"분사", q:"All items ------ from our online store can be returned within fourteen days.", choices:["purchase","purchasing","purchases","purchased"], answer:3, exp:"핵심: 본동사 can be returned가 있음. 이유: 구매된 물품 → 수동 과거분사 purchased."},
+{id:"p5-113", week:4, type:"분사", q:"The committee was ------ with the proposal and approved it without changes.", choices:["satisfy","satisfied","satisfying","satisfaction"], answer:1, exp:"핵심: be satisfied with = ~에 만족하다. 이유: 사람 주어의 감정은 과거분사."},
+{id:"p5-114", week:4, type:"분사", q:"------ the merger terms, the lawyers identified several clauses that needed revision.", choices:["Review","Reviewed","Reviewing","Reviews"], answer:2, exp:"핵심: 분사구문 + 목적어 the merger terms. 이유: 목적어가 있으므로 능동 현재분사 Reviewing."},
+{id:"p5-115", week:4, type:"관계사", q:"The vendor ------ bid was the lowest will be awarded the contract.", choices:["who","whose","which","whom"], answer:1, exp:"핵심: 빈칸 뒤 명사 bid → 소유격. 이유: 소유격 관계대명사 whose."},
+{id:"p5-116", week:4, type:"관계사", q:"Please read the enclosed brochure, ------ describes our new line of office furniture.", choices:["that","what","whose","which"], answer:3, exp:"핵심: 콤마 뒤 계속적 용법 + 주격. 이유: that 불가, 사물 주격 which."},
+{id:"p5-117", week:4, type:"관계사", q:"The period ------ sales are highest is usually the last quarter of the year.", choices:["which","where","when","what"], answer:2, exp:"핵심: 시간 선행사 period + 완전한 절. 이유: 관계부사 when."},
+{id:"p5-118", week:4, type:"관계사", q:"Mr. Alvarez is the engineer ------ designed the ventilation system for the new plant.", choices:["whom","which","whose","who"], answer:3, exp:"핵심: 사람 선행사 + 주격. 이유: designed의 주어 자리이므로 who."},
+{id:"p5-119", week:4, type:"관계사", q:"The firm will reimburse ------ is spent on approved travel expenses.", choices:["whatever","whoever","whichever","however"], answer:0, exp:"핵심: 복합관계대명사가 명사절 주어. 이유: 사물(비용)이므로 whatever."},
+{id:"p5-120", week:4, type:"어휘", q:"The new software has greatly ------ the process of tracking inventory.", choices:["qualified","simplified","clarified","verified"], answer:1, exp:"핵심: simplify the process = 과정을 단순화하다. 이유: process와 어울리는 동사는 simplify."},
+{id:"p5-121", week:4, type:"어휘", q:"Please be advised that the parking garage will be ------ for maintenance on Saturday.", choices:["inaccessible","incomplete","invalid","indirect"], answer:0, exp:"핵심: inaccessible = 이용 불가한. 이유: 유지보수로 출입이 막힌다는 문맥."},
+{id:"p5-122", week:4, type:"어휘", q:"The seminar was ------ by more than three hundred industry professionals.", choices:["joined","attended","participated","visited"], answer:1, exp:"핵심: attend a seminar = 세미나에 참석하다. 이유: 타동사로 수동태 가능한 attended."},
+{id:"p5-123", week:4, type:"어휘", q:"The company's ------ to customer satisfaction is reflected in its generous return policy.", choices:["agreement","assignment","judgment","commitment"], answer:3, exp:"핵심: commitment to = ~에 대한 헌신. 이유: to와 결합하는 명사는 commitment."},
+{id:"p5-124", week:4, type:"어휘", q:"Despite the ------ weather, the outdoor festival drew a record number of visitors.", choices:["adverse","averse","reverse","diverse"], answer:0, exp:"핵심: adverse weather = 악천후. 이유: Despite와 어울리는 부정적 의미의 adverse."},
+{id:"p5-125", week:4, type:"어휘", q:"The manager asked the team to ------ the proposal before submitting it to the client.", choices:["decline","confine","refine","define"], answer:2, exp:"핵심: refine the proposal = 제안서를 다듬다. 이유: 제출 전 보완한다는 문맥."},
+{id:"p5-126", week:4, type:"어휘", q:"The bank's loan terms are ------ with those offered by its competitors.", choices:["insistent","persistent","resistant","consistent"], answer:3, exp:"핵심: consistent with = ~와 일치하는. 이유: 경쟁사 조건과 비교하는 문맥."},
+{id:"p5-127", week:4, type:"어휘", q:"Employees are ------ to attend the safety briefing scheduled for Monday morning.", choices:["expected","suspected","inspected","respected"], answer:0, exp:"핵심: be expected to = ~하도록 요구되다. 이유: 참석 의무를 나타내는 expected."},
+{id:"p5-128", week:4, type:"어휘", q:"The quarterly ------ to shareholders was released on the company's website this morning.", choices:["movement","placement","statement","agreement"], answer:2, exp:"핵심: statement to shareholders = 주주 보고서. 이유: 공개되는 문서는 statement."},
+{id:"p5-129", week:4, type:"어휘", q:"Sales representatives who ------ their targets will receive a trip to Bali.", choices:["excel","exceed","expand","extend"], answer:1, exp:"핵심: exceed targets = 목표를 초과하다. 이유: targets를 목적어로 취하는 exceed."},
+{id:"p5-130", week:4, type:"시제", q:"By the end of this year, Loma Bakery ------ three new branches in the suburbs.", choices:["opens","opened","has opened","will have opened"], answer:3, exp:"핵심: By the end of this year → 미래완료. 이유: 미래 시점까지의 완료는 will have opened."},
+{id:"p5-131", week:4, type:"시제", q:"When the inspector arrived, the staff ------ already cleaned the storage area.", choices:["has","had","have","will have"], answer:1, exp:"핵심: 과거(arrived)보다 먼저 완료 → 과거완료. 이유: had already cleaned."},
+{id:"p5-132", week:4, type:"시제", q:"Ms. Fontaine ------ the new branch office until a permanent manager is appointed.", choices:["managed","has managed","will manage","had managed"], answer:2, exp:"핵심: until절 현재시제는 미래 대용. 이유: 주절은 미래시제 will manage."},
+{id:"p5-133", week:4, type:"시제", q:"The company ------ its profits every year since it adopted the new pricing model.", choices:["has increased","increased","increases","had increased"], answer:0, exp:"핵심: since + 과거절 → 현재완료. 이유: 과거부터 현재까지 계속된 일."},
+{id:"p5-134", week:4, type:"시제", q:"Ten years ago, Halden Logistics ------ only three trucks and a single warehouse.", choices:["owns","owned","has owned","had been owning"], answer:1, exp:"핵심: Ten years ago → 과거시제. 이유: 명확한 과거 시점이므로 owned."},
+{id:"p5-135", week:4, type:"수일치", q:"The equipment in the laboratories ------ inspected twice a year by an outside firm.", choices:["are","were","have been","is"], answer:3, exp:"핵심: equipment는 불가산 단수. 이유: in the laboratories는 수식어, 단수 동사 is."},
+{id:"p5-136", week:4, type:"수일치", q:"Both the manager and the assistant ------ attending the conference in Seoul next month.", choices:["is","are","was","has been"], answer:1, exp:"핵심: Both A and B → 복수. 이유: 복수 주어이며 next month 문맥이므로 are."},
+{id:"p5-137", week:4, type:"수일치", q:"One of the main reasons for the delay ------ the shortage of raw materials.", choices:["were","are","have been","was"], answer:3, exp:"핵심: One of + 복수명사 → 단수 취급. 이유: 주어 One이 단수이므로 was."},
+{id:"p5-138", week:4, type:"수일치", q:"There ------ several reasons why the committee rejected the proposal.", choices:["is","was","has","were"], answer:3, exp:"핵심: There + 동사 + 복수 주어. 이유: several reasons가 복수, 과거 문맥이므로 were."},
+{id:"p5-139", week:4, type:"품사", q:"The ------ of the new policy will be evaluated after six months.", choices:["effective","effectively","effectiveness","effected"], answer:2, exp:"핵심: The 뒤, of 앞 주어 명사 자리. 이유: 명사 effectiveness가 정답."},
+{id:"p5-140", week:4, type:"품사", q:"Ms. Osei is ------ regarded as one of the top analysts in the industry.", choices:["wide","widely","width","widen"], answer:1, exp:"핵심: be동사와 과거분사 사이 부사 자리. 이유: widely regarded는 고정 표현."},
+{id:"p5-141", week:4, type:"품사", q:"The company is seeking a ------ candidate for the position of chief financial officer.", choices:["qualify","qualification","qualified","qualifier"], answer:2, exp:"핵심: 관사와 명사 사이 형용사 자리. 이유: 자격을 갖춘 → 과거분사형 형용사 qualified."},
+{id:"p5-142", week:4, type:"품사", q:"The hotel's ------ staff received excellent reviews from conference attendees.", choices:["attention","attentive","attentively","attend"], answer:1, exp:"핵심: 소유격과 명사 staff 사이 형용사 자리. 이유: 명사를 수식하는 attentive."},
+{id:"p5-143", week:4, type:"품사", q:"To ensure ------, all passwords must be changed every ninety days.", choices:["secure","securely","secured","security"], answer:3, exp:"핵심: 타동사 ensure의 목적어 자리. 이유: 명사 security가 필요."},
+{id:"p5-144", week:4, type:"전치사", q:"The seminar will be held ------ the first week of October at the Roswell Center.", choices:["on","at","by","during"], answer:3, exp:"핵심: during + 기간 명사. 이유: the first week라는 기간 앞에는 during."},
+{id:"p5-145", week:4, type:"전치사", q:"------ the exception of Ms. Kim, all managers attended the planning session.", choices:["With","By","For","In"], answer:0, exp:"핵심: with the exception of = ~을 제외하고. 이유: 고정 표현이므로 With."},
+{id:"p5-146", week:4, type:"전치사", q:"Employees must obtain approval ------ advance before purchasing any equipment over $500.", choices:["at","in","on","for"], answer:1, exp:"핵심: in advance = 미리. 이유: 고정 표현이므로 in."},
+{id:"p5-147", week:4, type:"전치사", q:"The factory has reduced water usage by 20 percent ------ installing new filters.", choices:["with","on","by","to"], answer:2, exp:"핵심: by + -ing = ~함으로써. 이유: 수단·방법을 나타내는 전치사 by."},
+{id:"p5-148", week:4, type:"접속사", q:"------ the contract has been signed, the construction crew can begin work immediately.", choices:["Now that","Despite","Because of","In case of"], answer:0, exp:"핵심: 절을 이끄는 접속사 자리. 이유: '이제 ~이므로'의 접속사 Now that."},
+{id:"p5-149", week:4, type:"접속사", q:"The project was completed ahead of schedule ------ the shortage of skilled workers.", choices:["although","even though","whereas","despite"], answer:3, exp:"핵심: 뒤에 명사구 → 접속사 불가. 이유: 양보의 전치사 despite만 가능."},
+{id:"p5-150", week:4, type:"접속사", q:"The manager will approve the overtime request ------ the budget allows it.", choices:["provided that","in case of","despite","as for"], answer:0, exp:"핵심: provided that + 절 = ~라는 조건이면. 이유: 절을 이끄는 조건 접속사."}
+];
+
+// LC Part 2 90문항
+const PART2 = [
+{id:"p2-001", week:1, trap:"의문사", q:"Who is leading the training session tomorrow?", choices:["Ms. Alvarez from Human Resources.","In the second-floor training room.","Yes, I attended it last year."], answer:0, exp:"핵심: Who → 사람으로 답. 이유: (B)는 Where 답, (C)는 의문사 의문문에 Yes/No 불가."},
+{id:"p2-002", week:1, trap:"의문사", q:"When will the new printers be delivered?", choices:["Yes, they're much faster.","To the third floor office.","Sometime next Tuesday."], answer:2, exp:"핵심: When → 시점으로 답. 이유: (A)는 Yes/No 불가, (B)는 Where 답."},
+{id:"p2-003", week:1, trap:"의문사", q:"Where did you put the client contracts?", choices:["About twenty pages long.","In the top drawer of my desk.","Yes, I signed them."], answer:1, exp:"핵심: Where → 장소로 답. 이유: (A)는 분량(How long) 답, (C)는 Yes/No 불가."},
+{id:"p2-004", week:1, trap:"의문사", q:"What time does the flight to Chicago leave?", choices:["At the international terminal.","At a quarter past six.","No, I haven't packed yet."], answer:1, exp:"핵심: What time → 시각으로 답. 이유: (A)는 Where 답, (C)는 Yes/No 불가."},
+{id:"p2-005", week:1, trap:"의문사", q:"Why was the shipment delayed?", choices:["There was a storm near the port.","About three hundred boxes.","No, it arrived yesterday."], answer:0, exp:"핵심: Why → 이유로 답. 이유: (B)는 How many 답, (C)는 Yes/No 불가."},
+{id:"p2-006", week:1, trap:"의문사", q:"How do I get to the supplier's warehouse?", choices:["Yes, it's quite large.","Around two in the afternoon.","Take the highway and exit at Maple Street."], answer:2, exp:"핵심: How → 방법(길 안내)으로 답. 이유: (A)는 Yes/No 불가, (B)는 When 답."},
+{id:"p2-007", week:1, trap:"의문사", q:"Who approved the travel expenses?", choices:["About four hundred dollars.","Yes, on Friday afternoon.","The finance director did."], answer:2, exp:"핵심: Who → 사람으로 답. 이유: (A)는 How much 답, (B)는 Yes/No 불가."},
+{id:"p2-008", week:1, trap:"의문사", q:"When is the deadline for the sales report?", choices:["This Friday at noon.","Yes, I've started on it.","In the shared folder."], answer:0, exp:"핵심: When → 시점으로 답. 이유: (B)는 Yes/No 불가, (C)는 Where 답."},
+{id:"p2-009", week:1, trap:"의문사", q:"Where should I send the repair invoice?", choices:["Yes, the technician fixed it.","To the accounting department.","It cost about two hundred dollars."], answer:1, exp:"핵심: Where → 보낼 곳으로 답. 이유: (A)는 Yes/No 불가, (C)는 How much 답."},
+{id:"p2-010", week:1, trap:"의문사", q:"What is the agenda for this afternoon's meeting?", choices:["We're reviewing the hiring plan.","Yes, at two o'clock.","In the small conference room."], answer:0, exp:"핵심: What(안건) → 내용으로 답. 이유: (B)는 Yes/No 불가, (C)는 Where 답."},
+{id:"p2-011", week:1, trap:"의문사", q:"Why is the elevator out of service?", choices:["To the tenth floor.","They're replacing the cables.","No, I took the stairs."], answer:1, exp:"핵심: Why → 이유로 답. 이유: (A)는 Where 답, (C)는 Yes/No 불가."},
+{id:"p2-012", week:1, trap:"의문사", q:"How many candidates are we interviewing today?", choices:["In the afternoon, I believe.","Yes, they all look qualified.","Five, if nobody cancels."], answer:2, exp:"핵심: How many → 숫자로 답. 이유: (A)는 When 답, (B)는 Yes/No 불가."},
+{id:"p2-013", week:1, trap:"의문사", q:"Who's picking up the clients from the airport?", choices:["Their flight lands at nine.","Yes, the airport is busy.","Jason volunteered to do it."], answer:2, exp:"핵심: Who → 사람으로 답. 이유: (A)는 When 답, (B)는 Yes/No 불가."},
+{id:"p2-014", week:1, trap:"의문사", q:"When did Ms. Chen join the company?", choices:["She works in marketing.","About three years ago.","Yes, she's very experienced."], answer:1, exp:"핵심: When → 시점으로 답. 이유: (A)는 부서(Where) 답, (C)는 Yes/No 불가."},
+{id:"p2-015", week:1, trap:"의문사", q:"Where is the nearest post office?", choices:["Just across the street from the bank.","It closes at five.","Yes, I need to mail a package."], answer:0, exp:"핵심: Where → 위치로 답. 이유: (B)는 When 답, (C)는 Yes/No 불가."},
+{id:"p2-016", week:1, trap:"의문사", q:"What should I bring to the budget review?", choices:["It starts at ten.","Last quarter's expense figures.","Yes, the budget was approved."], answer:1, exp:"핵심: What → 가져올 물건으로 답. 이유: (A)는 When 답, (C)는 Yes/No 불가."},
+{id:"p2-017", week:1, trap:"의문사", q:"How long will the software update take?", choices:["About thirty minutes.","Yes, it's the latest version.","The IT department handles it."], answer:0, exp:"핵심: How long → 소요 시간으로 답. 이유: (B)는 Yes/No 불가, (C)는 Who 답."},
+{id:"p2-018", week:1, trap:"의문사", q:"Why did the customer cancel the order?", choices:["About fifty units.","No, they paid in full.","They found a cheaper supplier."], answer:2, exp:"핵심: Why → 이유로 답. 이유: (A)는 How many 답, (B)는 Yes/No 불가."},
+{id:"p2-019", week:1, trap:"제안/요청", q:"Let's postpone the product launch until spring.", choices:["I agree, we need more time to prepare.","The product is a new laptop.","It launched in two countries."], answer:0, exp:"핵심: Let's 제안 → 동의/거절로 답. 이유: (B)는 product 연상, (C)는 launch 반복 함정."},
+{id:"p2-020", week:1, trap:"Yes/No", q:"Have you finished the quarterly audit?", choices:["In the finance office.","It took about a week last year.","Not yet, I need two more days."], answer:2, exp:"핵심: Have you → 완료 여부로 답. 이유: (A)는 Where 답, (B)는 과거 소요 시간으로 질문과 무관."},
+{id:"p2-021", week:1, trap:"Yes/No", q:"Is the conference room available at three?", choices:["It seats about twenty people.","Yes, nobody has booked it.","On the fourth floor."], answer:1, exp:"핵심: Is → 가능 여부로 답. 이유: (A)는 How many 답, (C)는 Where 답."},
+{id:"p2-022", week:1, trap:"Yes/No", q:"Did Mr. Tanaka call back about the contract?", choices:["The contract is ten pages.","Yes, about an hour ago.","At his main office."], answer:1, exp:"핵심: Did → 여부로 답. 이유: (A)는 contract 반복 함정, (C)는 Where 답."},
+{id:"p2-023", week:1, trap:"Yes/No", q:"Are you going to the trade show in Berlin?", choices:["It's held every spring.","By train, probably.","Yes, I leave on Monday."], answer:2, exp:"핵심: Are you → 참석 여부로 답. 이유: (A)는 How often 답, (B)는 How 답."},
+{id:"p2-024", week:1, trap:"Yes/No", q:"Do we have enough chairs for the workshop?", choices:["No, we'll need about ten more.","The workshop is about marketing.","In the storage room."], answer:0, exp:"핵심: Do we have → 충분 여부로 답. 이유: (B)는 workshop 반복 함정, (C)는 Where 답."},
+{id:"p2-025", week:1, trap:"Yes/No", q:"Can you fix the copier before noon?", choices:["Sure, I'll take a look right now.","It's on the second floor.","About fifty copies."], answer:0, exp:"핵심: Can you → 가능 여부로 답. 이유: (B)는 Where 답, (C)는 copier/copies 연상 함정."},
+{id:"p2-026", week:1, trap:"제안/요청", q:"Could you send me the updated price list?", choices:["The prices went up last month.","Of course, I'll email it now.","At the sales counter."], answer:1, exp:"핵심: Could you 요청 → 수락으로 답. 이유: (A)는 price 반복 함정, (C)는 Where 답."},
+{id:"p2-027", week:1, trap:"제안/요청", q:"Why don't we take a short break?", choices:["It lasted fifteen minutes.","The brakes need repair.","Good idea, I could use some coffee."], answer:2, exp:"핵심: Why don't we 제안 → 동의로 답. 이유: (A)는 How long 답, (B)는 break/brakes 유사발음 함정."},
+{id:"p2-028", week:1, trap:"제안/요청", q:"Would you mind reviewing my presentation slides?", choices:["The presentation is at ten.","About twenty slides.","Not at all, send them over."], answer:2, exp:"핵심: Would you mind → Not at all이 수락. 이유: (A)는 When 답, (B)는 How many 답."},
+{id:"p2-029", week:1, trap:"제안/요청", q:"How about meeting the clients for lunch on Thursday?", choices:["That works well for me.","The restaurant is downtown.","Yes, they enjoyed the meal."], answer:0, exp:"핵심: How about 제안 → 동의로 답. 이유: (B)는 Where 답, (C)는 lunch 연상 함정."},
+{id:"p2-030", week:1, trap:"제안/요청", q:"Please let me know when the samples arrive.", choices:["They were shipped from Taiwan.","I'll call you as soon as they do.","About twelve samples."], answer:1, exp:"핵심: Please 요청 → 수락으로 답. 이유: (A)는 Where 답, (C)는 How many 답."},
+{id:"p2-031", week:3, trap:"유사발음", q:"Could you make a copy of this report for me?", choices:["I'd like some coffee too.","The report is due Friday.","Sure, how many do you need?"], answer:2, exp:"핵심: 요청 → 수락 후 수량 확인. 이유: (A)는 copy/coffee 유사발음 함정, (B)는 report 반복 함정."},
+{id:"p2-032", week:3, trap:"유사발음", q:"Did you mail the invoice to the client?", choices:["Yes, I sent it this morning.","No, he's a male employee.","The train leaves at eight."], answer:0, exp:"핵심: Did you mail → 발송 여부로 답. 이유: (B)는 mail/male 유사발음 함정, (C)는 무관한 시각."},
+{id:"p2-033", week:3, trap:"유사발음", q:"When will the new accountant start working here?", choices:["Count the boxes carefully.","On the first of next month.","The account was closed."], answer:1, exp:"핵심: When → 시점으로 답. 이유: (A)(C)는 accountant/count/account 유사발음 함정."},
+{id:"p2-034", week:3, trap:"유사발음", q:"Where can I find the shipping department?", choices:["It's at the end of this hallway.","The ship sails at noon.","Yes, the package was heavy."], answer:0, exp:"핵심: Where → 위치로 답. 이유: (B)는 shipping/ship 유사발음 함정, (C)는 Yes/No 불가."},
+{id:"p2-035", week:3, trap:"유사발음", q:"Has the weather delayed our flight?", choices:["I don't know whether he's coming.","The weight limit is twenty kilos.","Yes, by about two hours."], answer:2, exp:"핵심: Has → 지연 여부로 답. 이유: (A)(B)는 weather/whether/weight 유사발음 함정."},
+{id:"p2-036", week:3, trap:"유사발음", q:"Who hired the new receptionist?", choices:["It's higher than I expected.","The office manager did.","Yes, she's receiving calls."], answer:1, exp:"핵심: Who → 사람으로 답. 이유: (A)는 hired/higher 유사발음 함정, (C)는 Yes/No 불가."},
+{id:"p2-037", week:3, trap:"연상어휘", q:"Where should we hold the year-end party?", choices:["The food was delicious.","How about the rooftop restaurant?","Everyone enjoyed the music."], answer:1, exp:"핵심: Where → 장소 제안으로 답. 이유: (A)(C)는 party에서 연상되는 food/music 함정."},
+{id:"p2-038", week:3, trap:"연상어휘", q:"How often is the office carpet cleaned?", choices:["Once every two weeks.","The vacuum is in the closet.","It's a dark blue color."], answer:0, exp:"핵심: How often → 빈도로 답. 이유: (B)는 cleaned 연상 vacuum, (C)는 carpet 연상 color 함정."},
+{id:"p2-039", week:3, trap:"연상어휘", q:"Who is going to drive to the airport?", choices:["My flight was delayed.","The car needs gas.","Rachel offered to take us."], answer:2, exp:"핵심: Who → 사람으로 답. 이유: (A)는 airport 연상 flight, (B)는 drive 연상 car 함정."},
+{id:"p2-040", week:3, trap:"연상어휘", q:"When does the bank close on Saturdays?", choices:["At one in the afternoon.","I deposited the check.","The interest rate went up."], answer:0, exp:"핵심: When → 시각으로 답. 이유: (B)(C)는 bank 연상 deposit/interest 함정."},
+{id:"p2-041", week:3, trap:"연상어휘", q:"Why is the printer making that noise?", choices:["I need twenty copies.","The paper tray is jammed.","Use the toner on the shelf."], answer:1, exp:"핵심: Why → 원인으로 답. 이유: (A)(C)는 printer 연상 copies/toner 함정."},
+{id:"p2-042", week:3, trap:"연상어휘", q:"How did the job interview go?", choices:["Please submit your resume.","The applicant is from Boston.","Better than I expected."], answer:2, exp:"핵심: How did it go → 결과 평가로 답. 이유: (A)(B)는 interview 연상 resume/applicant 함정."},
+{id:"p2-043", week:3, trap:"우회응답", q:"What time does the hardware store open?", choices:["Let me check their website.","It sells paint and tools.","Yes, it's open."], answer:0, exp:"핵심: 모르니 확인하겠다는 우회응답. 이유: (B)는 store 연상 함정, (C)는 의문사에 Yes 불가."},
+{id:"p2-044", week:3, trap:"우회응답", q:"Has the client signed the agreement yet?", choices:["The agreement is twelve pages.","Yes, sign on the last page.","Mr. Lee is meeting them this afternoon."], answer:2, exp:"핵심: 아직 아님을 상황으로 암시하는 우회응답. 이유: (A)는 agreement 반복, (B)는 sign 반복 함정."},
+{id:"p2-045", week:3, trap:"우회응답", q:"Who's responsible for ordering office supplies?", choices:["We need more paper.","It depends on which department you're in.","The supplies arrived yesterday."], answer:1, exp:"핵심: 상황에 따라 다르다는 우회응답. 이유: (A)는 supplies 연상 paper, (C)는 supplies 반복 함정."},
+{id:"p2-046", week:3, trap:"우회응답", q:"Are we still meeting with the investors tomorrow?", choices:["I haven't heard anything different.","The investment was quite large.","Yes, we met them last year."], answer:0, exp:"핵심: 변경 소식 없음 = 예정대로라는 우회응답. 이유: (B)는 investors/investment 유사, (C)는 시제 불일치."},
+{id:"p2-047", week:3, trap:"우회응답", q:"How much will the roof repair cost?", choices:["The roof leaks when it rains.","Yes, the roofer came yesterday.","The estimate hasn't come in yet."], answer:2, exp:"핵심: 견적이 아직 없다는 우회응답. 이유: (A)는 roof 반복 함정, (B)는 의문사에 Yes 불가."},
+{id:"p2-048", week:3, trap:"우회응답", q:"Will the new hire start on Monday?", choices:["Yes, she's very tall.","Her paperwork isn't finished yet.","She was hired in May."], answer:1, exp:"핵심: 서류 미완료 = 월요일 시작 어렵다는 우회응답. 이유: (A)는 무관한 Yes, (C)는 hire/hired 반복 함정."},
+{id:"p2-049", week:3, trap:"되묻기", q:"Could you book a hotel for the sales team?", choices:["For which dates?","The hotel has a pool.","Yes, I read the book."], answer:0, exp:"핵심: 요청에 세부 정보를 되묻는 응답. 이유: (B)는 hotel 연상 함정, (C)는 book(예약/책) 다의어 함정."},
+{id:"p2-050", week:3, trap:"되묻기", q:"Where should I file these customer complaints?", choices:["The customers were unhappy.","Yes, please file them.","Are they from this month?"], answer:2, exp:"핵심: 분류 기준을 되묻는 응답. 이유: (A)는 complaints 연상 함정, (B)는 의문사에 Yes 불가."},
+{id:"p2-051", week:3, trap:"되묻기", q:"When is the company picnic?", choices:["Do you mean the one in July?","At the city park.","Yes, I'm bringing sandwiches."], answer:0, exp:"핵심: 어떤 행사인지 되묻는 응답. 이유: (B)는 Where 답, (C)는 picnic 연상 함정."},
+{id:"p2-052", week:3, trap:"되묻기", q:"Can you give me a ride to the station?", choices:["The train was crowded.","Which station are you going to?","Yes, the ride was smooth."], answer:1, exp:"핵심: 목적지를 되묻는 응답. 이유: (A)는 station 연상 train, (C)는 ride 반복 함정."},
+{id:"p2-053", week:3, trap:"부정의문문", q:"Didn't you order the replacement parts last week?", choices:["The parts are very small.","No, they're not replaced.","Yes, but they haven't arrived yet."], answer:2, exp:"핵심: 부정의문문도 사실 기준으로 Yes/No. 주문했으면 Yes. 이유: (A)는 parts 반복, (B)는 replacement 반복 함정."},
+{id:"p2-054", week:3, trap:"부정의문문", q:"Isn't the marketing director on vacation?", choices:["She directs the ads.","No, she came back yesterday.","To Hawaii, I think."], answer:1, exp:"핵심: 휴가 중이 아니면 No. 이유: (A)는 director/directs 유사, (C)는 Where 답."},
+{id:"p2-055", week:3, trap:"부정의문문", q:"Haven't we already paid this invoice?", choices:["Yes, I sent the payment last Friday.","The invoice is for printing.","No, the price was fair."], answer:0, exp:"핵심: 지불했으면 Yes. 이유: (B)는 invoice 반복, (C)는 paid/price 연상 함정."},
+{id:"p2-056", week:3, trap:"부정의문문", q:"Aren't you attending the safety training today?", choices:["It's a safe building.","Yes, I'll be there at two.","No, the trainer is Mr. Cole."], answer:1, exp:"핵심: 참석하면 Yes. 이유: (A)는 safety/safe 유사, (C)는 training/trainer 유사발음 함정."},
+{id:"p2-057", week:3, trap:"선택의문문", q:"Would you like the report by email or in print?", choices:["Yes, I would like it.","The report is finished.","Email is fine, thanks."], answer:2, exp:"핵심: A or B → 하나를 선택. 이유: (A)는 선택의문문에 Yes 불가, (B)는 report 반복 함정."},
+{id:"p2-058", week:3, trap:"선택의문문", q:"Should we take the train or drive to the conference?", choices:["The train would be faster.","Yes, the conference is in Boston.","I drove last week."], answer:0, exp:"핵심: 둘 중 하나 선택. 이유: (B)는 Yes 불가, (C)는 drive/drove 반복 함정."},
+{id:"p2-059", week:3, trap:"선택의문문", q:"Is the staff meeting on Tuesday or Wednesday?", choices:["It will last an hour.","Yes, all staff must attend.","Neither, it was moved to Thursday."], answer:2, exp:"핵심: 둘 다 아님(Neither)도 정답 가능. 이유: (A)는 How long 답, (B)는 Yes 불가."},
+{id:"p2-060", week:3, trap:"선택의문문", q:"Do you want the window seat or the aisle?", choices:["The flight is three hours.","Either one is fine with me.","Yes, I booked it online."], answer:1, exp:"핵심: 둘 다 괜찮다(Either)도 정답 가능. 이유: (A)는 seat 연상 flight, (C)는 Yes 불가."},
+{id:"p2-061", week:4, trap:"평서문", q:"The air conditioner in the lobby isn't working.", choices:["It's a sunny day.","I'll call the maintenance team.","Yes, the lobby is large."], answer:1, exp:"핵심: 문제 제기 평서문 → 해결 행동으로 답. 이유: (A)는 air 연상 날씨, (C)는 lobby 반복 함정."},
+{id:"p2-062", week:4, trap:"평서문", q:"We've run out of printer paper again.", choices:["I'll order some more today.","The printer is new.","No, I didn't print it."], answer:0, exp:"핵심: 부족 알림 → 조치로 답. 이유: (B)(C)는 printer/print 반복 함정."},
+{id:"p2-063", week:4, trap:"평서문", q:"Our flight has been moved to gate twelve.", choices:["The ticket cost three hundred dollars.","Yes, it's a direct flight.","Then we'd better hurry."], answer:2, exp:"핵심: 정보 전달 → 그에 따른 반응. 이유: (A)는 flight 연상 ticket, (B)는 flight 반복 함정."},
+{id:"p2-064", week:4, trap:"평서문", q:"I think the sales figures are higher than last year.", choices:["The sale ends tomorrow.","At the sales counter.","Yes, by nearly ten percent."], answer:2, exp:"핵심: 의견 제시 → 동의하며 보충. 이유: (A)(B)는 sales/sale 유사발음·연상 함정."},
+{id:"p2-065", week:4, trap:"평서문", q:"The client wants to move the meeting to Friday.", choices:["The client is from Spain.","That's fine, I'm free that day.","Yes, it was a long meeting."], answer:1, exp:"핵심: 일정 변경 알림 → 수락으로 답. 이유: (A)는 client 반복, (C)는 meeting 반복 함정."},
+{id:"p2-066", week:4, trap:"평서문", q:"I can't find the key to the supply closet.", choices:["Ask the receptionist for the spare one.","The closet is full.","Yes, it's a brass key."], answer:0, exp:"핵심: 문제 제기 → 해결책 제안. 이유: (B)는 closet 반복, (C)는 key 반복 함정."},
+{id:"p2-067", week:4, trap:"평서문", q:"The new accounting software is really confusing.", choices:["There's a training session on Thursday.","The accountant left early.","No, it was expensive."], answer:0, exp:"핵심: 불만 → 도움 정보 제공. 이유: (B)는 accounting/accountant 유사, (C)는 무관한 No."},
+{id:"p2-068", week:4, trap:"평서문", q:"Mr. Patel's retirement party is next Friday.", choices:["He's retiring in Florida.","Yes, he's a good manager.","I've already signed the card."], answer:2, exp:"핵심: 행사 알림 → 관련 행동으로 반응. 이유: (A)는 retirement/retiring 유사, (B)는 무관한 Yes."},
+{id:"p2-069", week:4, trap:"부가의문문", q:"The shipment arrived on time, didn't it?", choices:["The shipment was from Vietnam.","Yes, it came this morning.","At three o'clock."], answer:1, exp:"핵심: 부가의문문 → 사실 확인 Yes/No. 이유: (A)는 shipment 반복, (C)는 When 답."},
+{id:"p2-070", week:4, trap:"부가의문문", q:"You've met the new vice president, haven't you?", choices:["She started in June.","No, the president is in Tokyo.","Not yet, but I've heard good things."], answer:2, exp:"핵심: 만났는지 여부로 답. 이유: (A)는 When 답, (B)는 president 반복 함정."},
+{id:"p2-071", week:4, trap:"부가의문문", q:"The quarterly report is due tomorrow, isn't it?", choices:["Actually, the deadline was extended.","It's about twenty pages.","Yes, I reported it."], answer:0, exp:"핵심: 사실이 다르면 정정하는 응답. 이유: (B)는 분량 답, (C)는 report/reported 유사발음 함정."},
+{id:"p2-072", week:4, trap:"부가의문문", q:"This printer can scan documents, can't it?", choices:["The documents are confidential.","Yes, just press the green button.","I can't find the scanner."], answer:1, exp:"핵심: 기능 확인 → Yes + 방법. 이유: (A)는 documents 반복, (C)는 scan/scanner 유사 함정."},
+{id:"p2-073", week:4, trap:"간접의문문", q:"Do you know where the staff parking lot is?", choices:["It's behind the main building.","Yes, I parked my car.","The lot is full of staff."], answer:0, exp:"핵심: 간접의문문은 안의 where에 답. 이유: (B)는 Yes만 하고 정보 없음, (C)는 staff/lot 반복 함정."},
+{id:"p2-074", week:4, trap:"간접의문문", q:"Could you tell me when the next shuttle leaves?", choices:["The shuttle is free.","Yes, I can tell you.","In about ten minutes."], answer:2, exp:"핵심: 안의 when에 시점으로 답. 이유: (A)는 shuttle 반복, (B)는 Yes만 하고 정보 없음."},
+{id:"p2-075", week:4, trap:"간접의문문", q:"Do you have any idea who's replacing Ms. Gomez?", choices:["She's going to Madrid.","I heard it's someone from the Denver office.","Yes, I have an idea."], answer:1, exp:"핵심: 안의 who에 사람으로 답. 이유: (A)는 Where 답, (C)는 idea 반복 함정."},
+{id:"p2-076", week:4, trap:"간접의문문", q:"Can you tell me how much the repair will cost?", choices:["The repair shop opens at nine.","Yes, it was repaired.","Around two hundred dollars."], answer:2, exp:"핵심: 안의 how much에 금액으로 답. 이유: (A)(B)는 repair 반복 함정."},
+{id:"p2-077", week:4, trap:"우회응답", q:"When will the new office furniture arrive?", choices:["The supplier hasn't confirmed yet.","It's made of oak.","Yes, I ordered six desks."], answer:0, exp:"핵심: 아직 확정 안 됐다는 우회응답. 이유: (B)는 furniture 연상, (C)는 의문사에 Yes 불가."},
+{id:"p2-078", week:4, trap:"우회응답", q:"Who's giving the keynote speech at the conference?", choices:["The speech was inspiring.","Check the program on the website.","Yes, the conference is in May."], answer:1, exp:"핵심: 확인 방법을 알려주는 우회응답. 이유: (A)는 speech 반복, (C)는 Yes 불가."},
+{id:"p2-079", week:4, trap:"우회응답", q:"Is the budget proposal ready for review?", choices:["The budget is quite large.","Yes, I reviewed it last year.","I'm still waiting on the numbers from sales."], answer:2, exp:"핵심: 아직 아님을 이유로 설명하는 우회응답. 이유: (A)는 budget 반복, (B)는 review 반복·시제 불일치."},
+{id:"p2-080", week:4, trap:"우회응답", q:"Why hasn't the technician arrived yet?", choices:["There was heavy traffic downtown.","The technician fixed the server.","No, he's not a technician."], answer:0, exp:"핵심: Why → 추정 이유로 답. 이유: (B)(C)는 technician 반복 함정, (C)는 No 불가."},
+{id:"p2-081", week:4, trap:"우회응답", q:"Did the customer accept our refund offer?", choices:["The refund is fifty dollars.","Yes, the customer is here.","I haven't heard back from them."], answer:2, exp:"핵심: 아직 모른다는 우회응답. 이유: (A)는 refund 반복, (B)는 customer 반복 함정."},
+{id:"p2-082", week:4, trap:"우회응답", q:"How many people registered for the webinar?", choices:["The webinar is about finance.","I'll pull up the numbers for you.","Yes, I registered yesterday."], answer:1, exp:"핵심: 확인해 주겠다는 우회응답. 이유: (A)는 webinar 반복, (C)는 의문사에 Yes 불가."},
+{id:"p2-083", week:4, trap:"선택의문문", q:"Should I call the supplier now or wait until Monday?", choices:["Monday would be better, they're closed today.","Yes, call them.","The supplier is in Ohio."], answer:0, exp:"핵심: 둘 중 하나 선택 + 이유. 이유: (B)는 Yes 불가, (C)는 supplier 반복 함정."},
+{id:"p2-084", week:4, trap:"선택의문문", q:"Would you prefer to meet in the morning or after lunch?", choices:["Lunch was delicious.","Whichever works for your schedule.","Yes, I'll meet you."], answer:1, exp:"핵심: 상대에게 맡기는 응답도 정답. 이유: (A)는 lunch 반복, (C)는 Yes 불가."},
+{id:"p2-085", week:4, trap:"선택의문문", q:"Are we paying the contractor by check or by bank transfer?", choices:["The contractor finished on time.","Yes, we paid him.","I'll have to ask the accounting team."], answer:2, exp:"핵심: 모르니 확인하겠다는 우회응답. 이유: (A)는 contractor 반복, (B)는 Yes 불가."},
+{id:"p2-086", week:4, trap:"선택의문문", q:"Do you want to review the contract today or tomorrow?", choices:["Let's do it today, before the client calls.","The contract is signed.","Yes, I'll review it."], answer:0, exp:"핵심: 하나 선택 + 이유. 이유: (B)는 contract 반복, (C)는 Yes 불가."},
+{id:"p2-087", week:4, trap:"유사발음", q:"Did you receive the package from the warehouse?", choices:["No, the receipt was lost.","Yes, it came this morning.","The house is for sale."], answer:1, exp:"핵심: Did you → 수령 여부로 답. 이유: (A)는 receive/receipt, (C)는 warehouse/house 유사발음 함정."},
+{id:"p2-088", week:4, trap:"유사발음", q:"How much does it cost to rent a booth at the fair?", choices:["The fare was ten dollars.","Yes, the booth is booked.","About five hundred dollars a day."], answer:2, exp:"핵심: How much → 금액으로 답. 이유: (A)는 fair/fare 유사발음 함정, (B)는 Yes 불가."},
+{id:"p2-089", week:4, trap:"유사발음", q:"Why was the board meeting postponed?", choices:["The chairman is out sick.","The board is made of wood.","Yes, it was posted."], answer:0, exp:"핵심: Why → 이유로 답. 이유: (B)는 board 다의어, (C)는 postponed/posted 유사발음 함정."},
+{id:"p2-090", week:4, trap:"유사발음", q:"Where can I find a parking permit?", choices:["The park closes at dusk.","At the security desk downstairs.","No, I didn't permit it."], answer:1, exp:"핵심: Where → 장소로 답. 이유: (A)는 parking/park, (C)는 permit 동사 유사발음 함정."}
+];
+
+// Part 6 12지문 / Part 7 20지문
+const PART6 = [
+{id:"p6-01", week:2, kind:"memo", title:"Memo: Move to Harbor Point Tower", text:"To: All Staff\nFrom: Facilities Department\nDate: February 10\nSubject: Move to Harbor Point Tower\n\nOur office will relocate to the Harbor Point Tower on March 3. All employees [1] to pack their personal belongings by February 27. Boxes and labels are [2] at the reception desk, and the moving company will collect them on the morning of the move.\n\n[3], the IT team will set up every workstation before staff arrive on March 4. If you have special equipment, please notify your manager this week.", blanks:[
+{n:1,choices:["are expected","expecting","have expected","to expect"],answer:0,exp:"핵심: 주어 뒤 본동사 자리, 수동태. 이유: 직원들이 요청을 받는 입장이므로 are expected to."},
+{n:2,choices:["availably","availability","avail","available"],answer:3,exp:"핵심: be동사 뒤 보어 자리 → 형용사. 이유: '이용 가능한'이라는 뜻의 형용사 available."},
+{n:3,choices:["However","In addition","For example","Otherwise"],answer:1,exp:"핵심: 연결어 문제 → 앞뒤 논리 확인. 이유: 앞 내용에 더해 IT팀의 추가 조치를 설명하므로 In addition."}]},
+
+{id:"p6-02", week:2, kind:"email", title:"E-mail: Interview Invitation", text:"To: Marcus Feld\nFrom: hr@lumenwave-tech.example\nSubject: Interview for Marketing Coordinator\n\nDear Mr. Feld,\n\nThank you for applying for the Marketing Coordinator position at Lumenwave Technologies. We were impressed by your [1] and would like to invite you to an interview on Tuesday, April 14, at 10:00 A.M.\n\nThe interview [2] approximately one hour and will include a short writing task. Please bring two copies of your résumé and a photo ID. [3] you are unable to attend at this time, reply to this e-mail and we will arrange another slot.\n\nSincerely,\nPriya Anand\nHuman Resources", blanks:[
+{n:1,choices:["qualify","qualified","qualifications","qualifying"],answer:2,exp:"핵심: 소유격 your 뒤 명사 자리. 이유: '자격 요건'을 뜻하는 명사 qualifications."},
+{n:2,choices:["lasted","has lasted","lasting","will last"],answer:3,exp:"핵심: 시제 문제 → 날짜 단서 확인. 이유: 4월 14일에 예정된 면접이므로 미래 will last."},
+{n:3,choices:["Unless","If","Although","Because"],answer:1,exp:"핵심: 접속사 의미 → 조건. 이유: '참석이 어려우면 답장하라'는 조건이므로 If."}]},
+
+{id:"p6-03", week:2, kind:"notice", title:"Notice: Parking Lot Repaving", text:"NOTICE TO TENANTS\n\nThe parking lot behind the Crestview Office Park will be repaved from June 8 to June 12. During this period, the lot will be [1] closed, and tenants are asked to park in the public garage on Elm Street. The management office [2] arranged discounted garage passes for anyone who needs one; please pick yours up before June 5.\n\nWe apologize for any inconvenience. [3], the finished lot will have twenty additional spaces and brighter lighting, which many tenants have requested.\n\nCrestview Property Management", blanks:[
+{n:1,choices:["complete","completely","completion","completed"],answer:1,exp:"핵심: 형용사 closed를 수식 → 부사. 이유: '완전히 폐쇄된'이므로 부사 completely."},
+{n:2,choices:["has","have","having","to have"],answer:0,exp:"핵심: 단수 주어 office → 단수 동사. 이유: has arranged 현재완료, 이미 준비가 끝난 상태."},
+{n:3,choices:["Similarly","Instead","On the other hand","As a result"],answer:2,exp:"핵심: 연결어 → 불편 vs 장점의 대조. 이유: 사과 뒤 긍정적 변화로 전환하므로 On the other hand."}]},
+
+{id:"p6-04", week:2, kind:"letter", title:"Letter: Subscription Renewal", text:"March 2\n\nDear Ms. Okafor,\n\nYour subscription to Harborline Business Review will expire on April 1. To continue receiving the magazine without interruption, please renew [1] March 25. Subscribers who renew for two years will receive a 20 percent discount and free access to our online archive.\n\nWe have also [2] a new mobile edition this year. It allows readers to download each issue on the day it is printed. [3] you have any questions about your account, our customer service team is available weekdays from 9:00 A.M. to 6:00 P.M.\n\nSincerely,\nTobias Lindqvist\nSubscription Services", blanks:[
+{n:1,choices:["until","by","since","at"],answer:1,exp:"핵심: 전치사 의미 → 기한. 이유: 특정 시점까지 완료해야 하는 행동이므로 by."},
+{n:2,choices:["introduce","introducing","introduced","introduction"],answer:2,exp:"핵심: have 뒤 과거분사 → 현재완료. 이유: 올해 이미 도입했으므로 introduced."},
+{n:3,choices:["Should","Whether","Even","Only"],answer:0,exp:"핵심: 조건문 도치 'Should you have'. 이유: If you should have의 도치 형태이므로 Should."}]},
+
+{id:"p6-05", week:2, kind:"advertisement", title:"Advertisement: Greenfork Catering", text:"Greenfork Catering\nFresh Meals for Every Business Occasion\n\nPlanning a client lunch, a training workshop, or a company picnic? Greenfork Catering delivers [1] prepared meals to offices across the city. Our menus feature locally grown ingredients, and we offer vegetarian and gluten-free options at no extra charge.\n\nOrders placed before 3:00 P.M. are delivered the next business day. [2], same-day delivery can be arranged for an additional fee. Clients who book three events in one quarter [3] a complimentary dessert platter with their fourth order.\n\nVisit www.greenfork-catering.example or call 555-0142 to request a quote.", blanks:[
+{n:1,choices:["fresh","freshness","fresher","freshly"],answer:3,exp:"핵심: 과거분사 prepared를 수식 → 부사. 이유: '갓 준비된'이므로 freshly."},
+{n:2,choices:["Therefore","In addition","For instance","Otherwise"],answer:1,exp:"핵심: 연결어 → 추가 서비스 안내. 이유: 익일 배송에 더해 당일 배송도 가능하므로 In addition."},
+{n:3,choices:["receives","will receive","received","receiving"],answer:1,exp:"핵심: 복수 주어 Clients + 조건 충족 후 혜택. 이유: 앞으로 받게 될 혜택이므로 will receive."}]},
+
+{id:"p6-06", week:2, kind:"article", title:"Article: Bexley Bakery Opens Second Location", text:"Bexley Bakery Opens Second Location\n\nBexley Bakery, a family-owned business known for its sourdough bread, [1] its second store on Monday in the Northgate district. The original shop on Main Street opened in 2015 and quickly became popular with commuters.\n\nOwner Elena Marsh said the new location was chosen [2] of its proximity to the train station. \"Many of our customers asked us to open closer to where they work,\" she explained. The Northgate store will employ twelve people, most of [3] were hired from the surrounding neighborhood. A grand opening celebration with free samples is planned for Saturday.", blanks:[
+{n:1,choices:["opens","opened","will open","has opened"],answer:1,exp:"핵심: 시제 → 'on Monday'라는 과거 시점. 이유: 특정 과거 시점이 있으므로 단순과거 opened."},
+{n:2,choices:["because","instead","in spite","as a result"],answer:0,exp:"핵심: 뒤의 of와 결합하는 전치사구. 이유: 역과 가깝다는 '이유'를 설명하므로 because of."},
+{n:3,choices:["them","which","who","whom"],answer:3,exp:"핵심: 'most of + 관계대명사' → 전치사 뒤 목적격. 이유: 사람(people)을 받으므로 whom."}]},
+
+{id:"p6-07", week:2, kind:"email", title:"E-mail: Shipping Delay", text:"To: Rachel Donovan\nFrom: support@nordpeak-outdoor.example\nSubject: Update on Order NP-77310\n\nDear Ms. Donovan,\n\nWe are writing to inform you that your order of two camping tents has been delayed. Severe weather at our distribution center [1] shipments for the past three days. Your package is now expected to arrive on Friday, two days later than [2] scheduled.\n\nTo apologize for the delay, we have added a $15 credit to your account. [3], you may cancel the order for a full refund by replying to this message. We appreciate your patience and hope to serve you again soon.\n\nBest regards,\nNordpeak Outdoor Customer Care", blanks:[
+{n:1,choices:["has interrupted","interrupts","will interrupt","interrupting"],answer:0,exp:"핵심: 'for the past three days' → 현재완료. 이유: 과거부터 지금까지 이어진 영향이므로 has interrupted."},
+{n:2,choices:["original","originally","origin","originate"],answer:1,exp:"핵심: 과거분사 scheduled를 수식 → 부사. 이유: '원래 예정된'이므로 originally."},
+{n:3,choices:["Consequently","Likewise","Alternatively","Meanwhile"],answer:2,exp:"핵심: 연결어 → 대안 제시. 이유: 크레딧 대신 환불이라는 다른 선택지이므로 Alternatively."}]},
+
+{id:"p6-08", week:4, kind:"memo", title:"Memo: Revised Travel Expense Policy", text:"To: All Department Heads\nFrom: Finance Office\nSubject: Revised Travel Expense Policy\n\nEffective May 1, the company's travel expense policy will change. Employees [1] to submit receipts for all expenses over $25, including meals and taxi fares. Claims submitted without receipts will not be reimbursed.\n\nIn addition, hotel bookings must be made through our approved travel agency, Skyward Travel. Bookings made [2] will be approved only in emergencies. We understand this is a significant change, [3] we ask every manager to review the new rules with their teams before the end of April.\n\nQuestions may be directed to Henry Wu at extension 2210.", blanks:[
+{n:1,choices:["will require","are required","requiring","required"],answer:1,exp:"핵심: 수동태 'be required to'. 이유: 직원이 요구를 받는 대상이므로 are required to."},
+{n:2,choices:["elsewhere","everywhere","somewhere","nowhere"],answer:0,exp:"핵심: 어휘 → 승인된 대행사 이외의 곳. 이유: '다른 곳에서' 한 예약이므로 elsewhere."},
+{n:3,choices:["but","or","nor","so"],answer:3,exp:"핵심: 접속사 → 인과 관계. 이유: 큰 변화이므로 '그래서' 검토를 요청하는 흐름, so."}]},
+
+{id:"p6-09", week:4, kind:"notice", title:"Notice: Digital Marketing Workshop", text:"Registration Now Open: Digital Marketing Workshop\n\nThe Chamber of Commerce invites local business owners to a one-day workshop on digital marketing on Thursday, September 17, at the Oakwood Conference Center. Sessions will cover social media strategy, e-mail campaigns, and website analytics.\n\nSpace is limited to forty [1], so early registration is recommended. The fee is $60 for Chamber members and $90 for non-members. Lunch and printed materials are [2] in the fee.\n\nThose who register by September 1 will receive a $10 discount. [3], seats cannot be reserved without payment. Register online at www.oakwoodchamber.example/workshop.", blanks:[
+{n:1,choices:["participate","participation","participating","participants"],answer:3,exp:"핵심: 숫자 forty 뒤 복수 명사. 이유: 사람 수를 세는 것이므로 participants."},
+{n:2,choices:["include","including","included","inclusive"],answer:2,exp:"핵심: be동사 뒤 수동 → 과거분사. 이유: 점심과 자료가 요금에 '포함되는' 것이므로 included."},
+{n:3,choices:["However","For example","Likewise","Therefore"],answer:0,exp:"핵심: 연결어 → 혜택 뒤의 단서 조항. 이유: 할인 안내 후 '그러나' 결제 없이는 예약 불가라는 대조, However."}]},
+
+{id:"p6-10", week:4, kind:"letter", title:"Letter: Damaged Bookshelf Response", text:"April 22\n\nDear Mr. Castellano,\n\nThank you for your letter of April 15 regarding the damaged bookshelf you received from Ashford Furniture. We sincerely apologize for the condition in which it [1]. Our quality team has reviewed photographs of the item and confirmed that the damage occurred during transport.\n\nA replacement shelf will be shipped to you at no charge within five business days. You do not need to return the damaged unit; our driver [2] it when the new one is delivered. [3], we have enclosed a voucher for 15 percent off your next purchase as a gesture of goodwill.\n\nWe value your business and regret the inconvenience.\n\nSincerely,\nLaura Bennett\nCustomer Relations Manager", blanks:[
+{n:1,choices:["arrives","will arrive","arriving","arrived"],answer:3,exp:"핵심: 시제 → 4월 15일 편지에 언급된 과거 사건. 이유: 이미 배송된 상태를 말하므로 과거 arrived."},
+{n:2,choices:["collects","collected","will collect","has collected"],answer:2,exp:"핵심: 시제 → 새 제품 배송 시점의 미래 행동. 이유: 'when the new one is delivered' 이후 일이므로 will collect."},
+{n:3,choices:["Furthermore","Otherwise","Nonetheless","In short"],answer:0,exp:"핵심: 연결어 → 추가 보상. 이유: 교체품에 더해 바우처도 제공하므로 Furthermore."}]},
+
+{id:"p6-11", week:4, kind:"article", title:"Article: Veltrix Logistics to Add 200 Jobs", text:"Veltrix Logistics to Add 200 Jobs\n\nVeltrix Logistics announced on Tuesday that it will expand its distribution center in Port Haven, creating approximately 200 new positions over the next eighteen months. The $40 million project [1] a new warehouse and an upgraded loading dock capable of handling larger container ships.\n\nChief Executive Daniel Reyes said the expansion was driven by [2] demand for overnight delivery from retail clients. \"Our current facility is operating at nearly full capacity,\" he noted.\n\nConstruction is scheduled to begin in January. [3] the project is complete, Veltrix expects to process twice as many packages per day as it does now. The company will begin hiring warehouse staff and drivers next spring.", blanks:[
+{n:1,choices:["includes","including","inclusion","to include"],answer:0,exp:"핵심: 주어 project 뒤 본동사 자리. 이유: 단수 주어에 맞는 동사 includes."},
+{n:2,choices:["grow","grown","growing","growth"],answer:2,exp:"핵심: 명사 demand를 수식 → 현재분사 형용사. 이유: '증가하는 수요'이므로 growing."},
+{n:3,choices:["Once","Until","Despite","Whereas"],answer:0,exp:"핵심: 접속사 의미 → 완료 이후 시점. 이유: '프로젝트가 완료되면'이라는 뜻이므로 Once."}]},
+
+{id:"p6-12", week:4, kind:"email", title:"E-mail: Budget Review Rescheduled", text:"To: Project Team\nFrom: Sofia Grant\nSubject: Thursday's Budget Review\n\nHi everyone,\n\nI need to move Thursday's budget review meeting because our finance director, Mr. Hale, will be traveling that day. The meeting [1] at 2:00 P.M. on Friday in Room 4B instead. Please update your calendars.\n\nBefore the meeting, each team lead should send me [2] department's updated cost estimates. I will combine them into a single spreadsheet so that we can compare the figures quickly. [3] you cannot attend on Friday, please send a colleague in your place and let me know by Wednesday.\n\nThanks for your flexibility.\n\nSofia", blanks:[
+{n:1,choices:["was held","has been held","will be held","is holding"],answer:2,exp:"핵심: 시제 + 수동 → 금요일로 옮겨진 회의. 이유: 미래에 '열리는' 회의이므로 will be held."},
+{n:2,choices:["they","theirs","them","their"],answer:3,exp:"핵심: 명사 department 앞 소유격. 이유: 각 팀장의 부서이므로 their."},
+{n:3,choices:["If","Since","While","Unless"],answer:0,exp:"핵심: 접속사 → 조건. 이유: '참석 불가하면 대리인을 보내라'는 조건이므로 If."}]}
+];
+
+const PART7 = [
+{id:"p7-01", week:3, kind:"email", title:"E-mail: Order Confirmation", text:"From: orders@brightline-supplies.example\nTo: Dana Whitmore\nSubject: Order #48213 Confirmed\n\nDear Ms. Whitmore,\n\nThank you for your order of 20 boxes of letter-size copy paper and 5 toner cartridges. Your order has been processed and will be shipped from our Dayton warehouse within two business days. Standard delivery normally takes three to five days, so you should receive your items by October 9.\n\nPlease note that the toner cartridges you selected are compatible only with Brightline 400-series printers. If you own a different model, contact us within 24 hours so that we can substitute the correct item before the order leaves the warehouse.\n\nYour invoice is attached. Payment is due within 30 days of delivery. We appreciate your business and look forward to serving you again.\n\nSincerely,\nBrightline Supplies Customer Team", questions:[
+{q:"What is the purpose of the e-mail?",choices:["To request a payment","To confirm a purchase","To announce a new product","To report a shipping delay"],answer:1,exp:"핵심: 목적 문제 → 첫 문단 확인. 이유: 'Thank you for your order ... has been processed'가 주문 확인을 뜻함."},
+{q:"By when should Ms. Whitmore contact Brightline if she owns a different printer model?",choices:["Within 24 hours","Within two business days","Within five days","Within 30 days"],answer:0,exp:"핵심: 세부 사항 → 숫자 단서 찾기. 이유: 'contact us within 24 hours'에 명시됨."},
+{q:"What is suggested about the toner cartridges?",choices:["They are out of stock","They were shipped separately","They do not work with every printer","They are free of charge"],answer:2,exp:"핵심: 추론 → 'compatible only with' 표현. 이유: 400 시리즈에만 호환 → 모든 프린터와 맞지는 않음(paraphrase)."}]},
+
+{id:"p7-02", week:3, kind:"notice", title:"Notice: Elevator Maintenance", text:"NOTICE TO ALL TENANTS\nMarlowe Center, 15th Floor\n\nThe east elevator will be out of service from Monday, July 6, through Wednesday, July 8, for scheduled maintenance. During this time, the west elevator and the stairways will remain available. Tenants expecting large deliveries are encouraged to schedule them for Thursday or later, as the west elevator is not designed to carry heavy freight.\n\nWe have arranged for a technician to be on site each day to minimize the disruption. If the work is completed ahead of schedule, we will notify tenants by e-mail. Please direct any questions to the building manager, Carla Mendes, at 555-0188.\n\nThank you for your cooperation.\n\nMarlowe Center Management", questions:[
+{q:"The word \"disruption\" in paragraph 2 is closest in meaning to",choices:["inconvenience","schedule","expense","distance"],answer:0,exp:"핵심: 동의어 → '지장, 혼란'. 이유: 공사로 인한 불편을 줄인다는 문맥이므로 inconvenience."},
+{q:"What is indicated about the west elevator?",choices:["It will also be closed for repairs","It cannot carry heavy loads","It is newer than the east elevator","It is reserved for deliveries"],answer:1,exp:"핵심: 추론 → 'not designed to carry heavy freight'. 이유: heavy freight → heavy loads로 바꿔 표현."}]},
+
+{id:"p7-03", week:3, kind:"text message chain", title:"Text Message Chain: Client Demo", text:"Minji Lee (9:12 A.M.): Hi Tom, are you at the Harlow client site yet? They just called asking about the demo.\n\nTom Baxter (9:14 A.M.): Almost. Traffic on the bridge is terrible. I should be there in fifteen minutes.\n\nMinji Lee (9:15 A.M.): Okay. Did you remember the adapter for the projector? Their conference room only has the older type of port.\n\nTom Baxter (9:16 A.M.): It's in my bag. I also brought printed handouts in case the Wi-Fi is unreliable.\n\nMinji Lee (9:17 A.M.): Good thinking. One more thing: Ms. Harlow wants to see the pricing for the annual plan, not just the monthly one.\n\nTom Baxter (9:18 A.M.): That's not in the slides. Can you send me the figures?\n\nMinji Lee (9:19 A.M.): Sending them now. Call me after the meeting and let me know how it went.", questions:[
+{q:"At 9:17 A.M., what does Ms. Lee most likely mean when she writes, \"Good thinking\"?",choices:["Mr. Baxter should leave earlier","Mr. Baxter prepared well for a possible problem","Mr. Baxter should buy a new adapter","Mr. Baxter has arrived at the site"],answer:1,exp:"핵심: 의도 파악 → 바로 앞 문장 확인. 이유: Wi-Fi 불안정에 대비해 인쇄물을 가져온 것을 칭찬."},
+{q:"What does Mr. Baxter ask Ms. Lee to do?",choices:["Call the client","Fix the projector","Reschedule the demo","Send some pricing information"],answer:3,exp:"핵심: 요청 사항 → 'Can you send me the figures?'. 이유: figures = 연간 요금제 가격 정보(paraphrase)."},
+{q:"Why is Mr. Baxter running late?",choices:["He got lost","He forgot the handouts","There is heavy traffic","His car broke down"],answer:2,exp:"핵심: 지연 이유 → 'Traffic on the bridge is terrible'. 이유: terrible traffic → heavy traffic."}]},
+
+{id:"p7-04", week:3, kind:"advertisement", title:"Advertisement: Hubbard Street Workspace", text:"Hubbard Street Workspace\nFlexible Offices for Growing Teams\n\nTired of long leases and empty desks? Hubbard Street Workspace offers private offices and shared desks on monthly terms, with no deposit required. Every membership includes high-speed Internet, unlimited coffee, and access to our rooftop lounge.\n\nOur meeting rooms seat four to twenty people and can be reserved through our mobile app, often with less than an hour's notice. Members also enjoy 24-hour building access with a secure key card.\n\nSpecial Offer: Sign up before November 30 and receive your first month at half price. Teams of five or more qualify for a dedicated office with a lockable door.\n\nSchedule a tour today at www.hubbardworkspace.example or stop by 212 Hubbard Street, Monday through Friday, 9:00 A.M. to 6:00 P.M.", questions:[
+{q:"What is NOT mentioned as a feature of the membership?",choices:["Free parking","Internet access","A rooftop lounge","24-hour access"],answer:0,exp:"핵심: NOT 문제 → 보기를 하나씩 지문과 대조. 이유: 주차는 언급되지 않음."},
+{q:"What is suggested about the meeting rooms?",choices:["They must be booked a week in advance","They are available only to teams of five","They can be reserved on short notice","They are located on the rooftop"],answer:2,exp:"핵심: 추론 → 'less than an hour's notice'. 이유: 한 시간 미만의 통지 → 짧은 시간 내 예약 가능(paraphrase)."}]},
+
+{id:"p7-05", week:3, kind:"article", title:"Article: Cordova Transit Launches Mobile Ticketing", text:"Cordova Transit Launches Mobile Ticketing\n\nCORDOVA (May 4) — Starting next Monday, riders on Cordova Transit buses and trains will be able to buy and display tickets on their smartphones. The new app, called GoCordova, replaces the paper passes that have been sold at station kiosks for more than twenty years.\n\nTransit director Amara Osei said the change was prompted by rider surveys in which nearly 70 percent of respondents asked for a cashless option. \"People already manage their banking and groceries on their phones,\" she said. \"Transit should be just as convenient.\"\n\nPaper passes will still be accepted until the end of the year. After that, riders without a smartphone can purchase a reloadable plastic card at any station. The agency expects the app to reduce boarding times by eliminating the need for drivers to inspect paper tickets.", questions:[
+{q:"According to the article, why did Cordova Transit introduce the app?",choices:["To respond to rider feedback","To reduce ticket prices","To replace its aging buses","To attract tourists"],answer:0,exp:"핵심: 이유 → 'prompted by rider surveys'. 이유: 설문 응답자의 요청 = rider feedback(paraphrase)."},
+{q:"The word \"prompted\" in paragraph 2 is closest in meaning to",choices:["delayed","measured","questioned","motivated"],answer:3,exp:"핵심: 동의어 → '촉발하다'. 이유: 설문이 변화를 이끌었다는 문맥이므로 motivated."},
+{q:"What is implied about paper passes?",choices:["They will be sold at a discount","They will no longer be accepted after December","They are more popular than the app","They can be loaded onto the plastic card"],answer:1,exp:"핵심: 추론 → 'accepted until the end of the year'. 이유: 연말까지만 허용 = 12월 이후 사용 불가."}]},
+
+{id:"p7-06", week:3, kind:"letter", title:"Letter: Conference Booking Confirmation", text:"Ridgeway Grand Hotel\n48 Lakeshore Drive, Belmont\n\nAugust 3\n\nMr. Victor Salazar\nEvents Coordinator, Pinecrest Software\n\nDear Mr. Salazar,\n\nThank you for choosing the Ridgeway Grand Hotel for your company's annual sales conference on October 12 and 13. This letter confirms your reservation of the Lakeview Ballroom for both days, along with forty guest rooms at the corporate rate of $145 per night.\n\nAs discussed, the ballroom will be arranged in classroom style for 120 attendees. Our audiovisual team will test the sound system on the morning of October 12. Please send us your final attendee count by September 28 so that our catering staff can plan the meals accordingly.\n\nA deposit of 25 percent is due upon receipt of this letter; the balance will be billed after the event. I look forward to working with you.\n\nSincerely,\nGwen Harlan\nDirector of Sales", questions:[
+{q:"What is Mr. Salazar asked to do by September 28?",choices:["Pay the full balance","Choose a seating arrangement","Confirm the number of attendees","Test the sound system"],answer:2,exp:"핵심: 요청 사항 → 'Please send us ... by September 28'. 이유: final attendee count → number of attendees(paraphrase)."},
+{q:"The word \"balance\" in paragraph 3 is closest in meaning to",choices:["stability","schedule","agreement","remaining amount"],answer:3,exp:"핵심: 다의어 balance → 금전 문맥. 이유: 보증금 25%를 제외한 '잔액'이므로 remaining amount."}]},
+
+{id:"p7-07", week:3, kind:"review", title:"Review: Silverline Roller Bag", text:"Customer Review: Silverline Luggage Co. Roller Bag\nRating: 4 out of 5 stars\nReviewed by Hannah Pruitt on March 18\n\nI bought the Silverline 22-inch roller bag for a two-week business trip across Europe, and overall I was pleased. The wheels glide smoothly over cobblestones, and the bag fit easily into the overhead compartments on every flight I took. The built-in USB port was especially handy for charging my phone during long layovers.\n\nMy only complaint is the zipper on the front pocket, which started to stick after about ten days of use. I contacted customer service, and they offered to replace the bag at no cost, which I appreciated. Still, for a product in this price range, I expected sturdier hardware.\n\nWould I recommend it? Yes, especially for frequent travelers who value light weight over heavy-duty construction.", questions:[
+{q:"What did Ms. Pruitt like about the bag?",choices:["Its large capacity","Its charging feature","Its low price","Its color options"],answer:1,exp:"핵심: 긍정 포인트 → 'USB port was especially handy'. 이유: USB port → charging feature(paraphrase)."},
+{q:"The word \"handy\" in paragraph 1 is closest in meaning to",choices:["useful","small","nearby","expensive"],answer:0,exp:"핵심: 동의어 → '편리한'. 이유: 충전에 도움이 되었다는 문맥이므로 useful."},
+{q:"What is implied about Silverline's customer service?",choices:["It was slow to respond","It charged a repair fee","It was willing to resolve the problem","It could not be reached"],answer:2,exp:"핵심: 추론 → 'offered to replace the bag at no cost'. 이유: 무료 교체 제안 = 문제 해결 의지."}]},
+
+{id:"p7-08", week:3, kind:"schedule", title:"Schedule: New Employee Orientation", text:"Harwood Financial Group\nNew Employee Orientation Schedule\nWednesday, January 14 — Conference Room A\n\n9:00 A.M. – 9:30 A.M. Welcome and Company Overview (Nadia Brooks, Director of Human Resources)\n9:30 A.M. – 10:30 A.M. Benefits and Payroll Enrollment (Carl Ingram, Payroll Specialist)\n10:30 A.M. – 10:45 A.M. Break\n10:45 A.M. – 12:00 P.M. Information Security Training (IT Department) *\n12:00 P.M. – 1:00 P.M. Lunch (provided)\n1:00 P.M. – 2:30 P.M. Department Introductions and Office Tour (team managers)\n2:30 P.M. – 3:00 P.M. Questions and Wrap-Up (Nadia Brooks)\n\n* Attendance at this session is mandatory. Employees who miss it will not receive network access until they complete the online version.\n\nPlease bring a government-issued ID and your signed employment agreement to the morning session. Laptops will be distributed during the office tour.", questions:[
+{q:"Who will lead the session on employee benefits?",choices:["Nadia Brooks","The IT Department","Team managers","Carl Ingram"],answer:3,exp:"핵심: 세부 사항 → 일정표에서 Benefits 항목 찾기. 이유: 'Carl Ingram, Payroll Specialist'가 담당."},
+{q:"What is suggested about the information security session?",choices:["It is held online only","It is optional for managers","It must be completed before using the company network","It will take place after lunch"],answer:2,exp:"핵심: 추론 → 각주(*) 확인. 이유: 'will not receive network access until' → 네트워크 사용의 조건."}]},
+
+{id:"p7-09", week:3, kind:"email", title:"E-mail: Trade Show Action Items", text:"To: Marketing Team\nFrom: Jonas Keller\nSubject: Trade Show Booth — Action Items\nDate: February 2\n\nHi all,\n\nWe have secured a 10-by-20-foot booth at the Pacific Retail Expo, which runs from March 24 to March 26 in Seattle. Since this is our largest show of the year, I want to finalize the plan this week.\n\nAmy, please order 500 copies of the new product catalog from the printer by Friday. Last year we ran out by the second day, so I would rather have extras. Rohan, confirm the shipment of the demo units with the warehouse; they need to arrive at the convention center no later than March 22.\n\nI have booked four hotel rooms near the venue. If you plan to attend, add your name to the shared spreadsheet by February 9 so I can release any rooms we do not need.\n\nThanks,\nJonas", questions:[
+{q:"Why did Mr. Keller send the e-mail?",choices:["To announce a new product","To assign tasks for an upcoming event","To request a budget increase","To cancel a hotel reservation"],answer:1,exp:"핵심: 목적 → 제목 'Action Items'와 지시문. 이유: 팀원별로 할 일을 배정하고 있음."},
+{q:"What is suggested about last year's expo?",choices:["It was held in a different city","The booth was smaller","The catalogs were insufficient","The demo units arrived late"],answer:2,exp:"핵심: 추론 → 'Last year we ran out by the second day'. 이유: ran out → insufficient(paraphrase)."},
+{q:"What should team members do by February 9?",choices:["Order catalogs","Ship demo units","Book a flight","Indicate whether they will attend"],answer:3,exp:"핵심: 날짜 단서 February 9 찾기. 이유: 'add your name to the shared spreadsheet' = 참석 의사 표시."}]},
+
+{id:"p7-10", week:3, kind:"form", title:"Form: Facility Rental Request", text:"Westbrook Community Center\nFacility Rental Request Form\n\nApplicant Name: Teresa Quon\nOrganization: Northside Small Business Association\nPhone: 555-0167\nE-mail: tquon@nsba.example\n\nRoom Requested: Main Hall (capacity 150)\nDate of Event: Saturday, June 20\nTime: 5:00 P.M. – 10:00 P.M. (includes one hour for setup and one hour for cleanup)\nType of Event: Annual awards dinner\nExpected Attendance: 110\n\nAdditional Services (check all that apply):\n[X] Tables and chairs\n[X] Sound system\n[ ] Kitchen access\n[X] Parking attendant\n\nSpecial Requests: We will use an outside caterer, so kitchen access is not required. However, we would like the stage lights tested before the event begins.\n\nFOR OFFICE USE ONLY\nRental fee: $480\nDeposit received: $120 on May 2\nApproved by: R. Flores, Facilities Coordinator", questions:[
+{q:"What is indicated about the event?",choices:["It will be held on a weekday","It will begin at 10:00 P.M.","Kitchen access has been requested","Food will be provided by an outside company"],answer:3,exp:"핵심: 세부 사항 → Special Requests 확인. 이유: outside caterer → 외부 업체가 음식 제공(paraphrase)."},
+{q:"What can be inferred about the Main Hall?",choices:["It is larger than needed for the event","It has no sound system","It is unavailable on weekends","It requires full payment in advance"],answer:0,exp:"핵심: 추론 → 수용 인원 150 vs 예상 참석 110. 이유: 수용 인원이 참석자 수보다 많음."}]},
+
+{id:"p7-11", week:3, kind:"notice", title:"Notice: TerraFlow Bottle Lid Defect", text:"IMPORTANT PRODUCT NOTICE\nTerraFlow Water Bottles — Model TF-500\n\nTerraFlow Outdoor has identified a defect in the lid of the TF-500 insulated bottle manufactured between January and April of this year. In some units, the locking tab may fail to hold the lid closed, causing leaks. No injuries have been reported, but we are asking customers to stop using affected bottles immediately.\n\nTo check whether your bottle is affected, look at the four-digit code printed on the bottom. Codes beginning with 01, 02, 03, or 04 are included in this notice. Bottles with codes beginning with 05 or higher were produced with a redesigned lid and are not affected.\n\nCustomers can request a free replacement lid at www.terraflow.example/lid or by calling 1-800-555-0199. Replacement lids will ship within ten business days. Proof of purchase is not required.\n\nWe apologize for the inconvenience.", questions:[
+{q:"What is the purpose of the notice?",choices:["To introduce a new bottle design","To inform customers about a product defect","To announce a price reduction","To recruit product testers"],answer:1,exp:"핵심: 목적 → 첫 문단 'identified a defect'. 이유: 결함을 알리고 조치를 요청함."},
+{q:"Which bottles are NOT affected by the notice?",choices:["Those with codes beginning with 02","Those purchased online","Those with codes beginning with 06","Those bought without a receipt"],answer:2,exp:"핵심: 세부 사항 → '05 or higher ... not affected'. 이유: 06은 05 이상이므로 해당 없음."},
+{q:"The word \"identified\" in paragraph 1 is closest in meaning to",choices:["named","corrected","sold","discovered"],answer:3,exp:"핵심: 동의어 → '발견하다'. 이유: 결함을 찾아냈다는 문맥이므로 discovered."}]},
+
+{id:"p7-12", week:3, kind:"email", title:"E-mail: Group Booking Inquiry", text:"To: Kenji Watanabe\nFrom: reservations@altavista-rail.example\nSubject: Re: Group Booking Inquiry\n\nDear Mr. Watanabe,\n\nThank you for your inquiry about group travel on the Altavista Express from Linden to Mount Carrow on November 7. I am pleased to confirm that we can accommodate your party of 18 in a reserved section of the panoramic car, which offers the best views of the valley.\n\nGroups of 15 or more receive a 12 percent discount on standard fares. For your group, the total comes to $1,584, which includes seat reservations and a light breakfast served on board. To hold the seats, we require a nonrefundable deposit of $300 by October 15; the remaining amount may be paid up to seven days before departure.\n\nPlease let me know if you would like to proceed, and I will send a booking form.\n\nKind regards,\nFelicia Moreau\nGroup Travel Desk", questions:[
+{q:"The word \"accommodate\" in paragraph 1 is closest in meaning to",choices:["entertain","transport","charge","make room for"],answer:3,exp:"핵심: 동의어 → '수용하다'. 이유: 18명을 받을 수 있다는 문맥이므로 make room for."},
+{q:"What is implied about the deposit?",choices:["It will be returned if the trip is canceled","It must be paid in cash","It cannot be refunded","It covers the cost of breakfast"],answer:2,exp:"핵심: 추론 → 'nonrefundable deposit'. 이유: nonrefundable → cannot be refunded(paraphrase)."}]},
+
+{id:"p7-13", week:4, kind:"text message chain", title:"Text Message Chain: Launch Banners", text:"Olivia Park (2:03 P.M.): Hi Daniel, the printer just told me the banners for Saturday's product launch won't be ready until Monday. Their machine broke down.\n\nDaniel Ruiz (2:05 P.M.): That's a problem. The venue opens at 8 A.M. on Saturday. Do we have another option?\n\nOlivia Park (2:07 P.M.): I called QuickSign on Fifth Avenue. They can do it by Friday afternoon, but it will cost about 30 percent more.\n\nDaniel Ruiz (2:08 P.M.): Go ahead. We can't have an empty stage. Did you send them the artwork?\n\nOlivia Park (2:10 P.M.): Not yet. I wanted your approval first. I'll e-mail the files now and pick the banners up myself on Friday.\n\nDaniel Ruiz (2:11 P.M.): Perfect. Let me know once QuickSign confirms the order, and I'll update the budget sheet.", questions:[
+{q:"Why will the original banners be late?",choices:["The artwork was sent too late","The order was placed at the wrong shop","The venue changed its schedule","The printer's equipment failed"],answer:3,exp:"핵심: 지연 원인 → 'Their machine broke down'. 이유: machine broke down → equipment failed(paraphrase)."},
+{q:"At 2:08 P.M., what does Mr. Ruiz mean when he writes, \"Go ahead\"?",choices:["Ms. Park should visit the venue","Ms. Park may place the more expensive order","Ms. Park should wait until Monday","Ms. Park can leave the office early"],answer:1,exp:"핵심: 의도 파악 → 직전 제안(30% 더 비싼 대안). 이유: 그 제안을 승인한다는 뜻."},
+{q:"What will Ms. Park do on Friday?",choices:["Update the budget","Meet with the printer","Collect the banners","Approve the artwork"],answer:2,exp:"핵심: 날짜 단서 Friday → 'pick the banners up myself'. 이유: pick up → collect(paraphrase)."}]},
+
+{id:"p7-14", week:4, kind:"article", title:"Article: Remote Work Survey", text:"Remote Work Survey Shows Shift in Office Use\n\nA survey of 1,200 companies released on Thursday by the Brennan Institute found that 58 percent of employers now allow staff to work from home at least two days a week, up from 31 percent three years ago. As a result, many firms are reducing the amount of office space they rent.\n\nHowever, the report cautions that smaller offices do not always mean lower costs. Companies that cut space too quickly often spend more later on meeting-room rentals and technology upgrades. \"The most successful firms redesign their offices around collaboration rather than individual desks,\" said lead researcher Dr. Paul Whitaker.\n\nThe institute recommends that companies track how often each area of their office is actually used for at least six months before signing a new lease.", questions:[
+{q:"According to the article, what has increased over the past three years?",choices:["The number of employers permitting remote work","The cost of office rentals","The size of corporate meeting rooms","The length of standard office leases"],answer:0,exp:"핵심: 세부 사항 → 58% vs 31% 비교. 이유: 재택근무를 허용하는 기업 비율이 증가."},
+{q:"What does Dr. Whitaker suggest about successful companies?",choices:["They have eliminated offices entirely","They rent the largest spaces available","They organize their offices to support teamwork","They require employees to work on site daily"],answer:2,exp:"핵심: 추론 → 'redesign ... around collaboration'. 이유: collaboration → teamwork(paraphrase)."}]},
+
+{id:"p7-15", week:4, kind:"letter", title:"Letter: Accounting Firm Relocation", text:"Pemberton & Vale Accounting\n310 Chestnut Avenue, Suite 5\nFairmont\n\nNovember 12\n\nDear Valued Client,\n\nAfter fifteen years at our Chestnut Avenue office, Pemberton & Vale Accounting will move to a larger space at 85 Union Plaza on December 1. The new office is located directly above the Union Plaza subway station and offers two hours of free client parking in the attached garage.\n\nOur phone numbers and e-mail addresses will remain the same. However, please update your records with the new mailing address, as documents sent to Chestnut Avenue after December 15 may be returned to the sender.\n\nTo celebrate the move, we will host an open house on Friday, December 5, from 4:00 P.M. to 7:00 P.M. Light refreshments will be served, and our tax specialists will be available to answer questions about the upcoming filing season. We hope to see you there.\n\nSincerely,\nMargaret Vale\nManaging Partner", questions:[
+{q:"What is the main purpose of the letter?",choices:["To announce a change of location","To introduce a new tax specialist","To request overdue payments","To explain new filing rules"],answer:0,exp:"핵심: 목적 → 첫 문단 'will move to a larger space'. 이유: 사무실 이전을 안내함."},
+{q:"What is NOT mentioned about the new office?",choices:["It is near public transportation","It offers free parking","It has more space","It has a larger staff"],answer:3,exp:"핵심: NOT 문제 → 보기별로 지문과 대조. 이유: 직원 수 증가는 언급 없음."},
+{q:"What will happen on December 5?",choices:["The office will close for the move","Clients can attend a reception","Tax forms will be mailed","The phone numbers will change"],answer:1,exp:"핵심: 날짜 단서 → open house. 이유: open house → reception(paraphrase)."}]},
+
+{id:"p7-16", week:4, kind:"advertisement", title:"Advertisement: Corporate Wellness Program", text:"Summit Peak Fitness — Corporate Wellness Program\n\nHealthy employees are productive employees. Summit Peak Fitness now offers corporate memberships designed for companies of every size.\n\nWhat your team gets:\n- Unlimited access to all six Summit Peak locations\n- Two on-site wellness seminars per year at your office\n- A dedicated account manager for billing and scheduling\n- Monthly usage reports to help you measure participation\n\nPricing starts at $29 per employee per month for companies enrolling at least 20 staff members. Companies with 100 or more participants receive a complimentary fitness assessment for each employee.\n\nAlready a Summit Peak member? Your company's enrollment will automatically convert your individual plan to the corporate rate at your next billing date.\n\nContact our corporate sales team at corporate@summitpeak.example to request a proposal.", questions:[
+{q:"What is included in the corporate membership?",choices:["Seminars held at the client's workplace","Free personal training sessions","Discounted sports equipment","Daily fitness classes online"],answer:0,exp:"핵심: 세부 사항 → 목록 확인. 이유: 'on-site wellness seminars ... at your office' → 고객 직장에서 열리는 세미나(paraphrase)."},
+{q:"What is suggested about current individual members?",choices:["They must cancel their plans before enrolling","They will pay more under the corporate plan","Their plans will be switched to the corporate rate","They are not eligible for the program"],answer:2,exp:"핵심: 추론 → 마지막 문단 'automatically convert'. 이유: convert → switched(paraphrase)."}]},
+
+{id:"p7-17", week:4, kind:"email", title:"E-mail: Sales Report Corrections", text:"To: Fiona Castle\nFrom: Leo Marchetti\nSubject: Quarterly Sales Report — Corrections Needed\nDate: April 8\n\nHi Fiona,\n\nI reviewed the draft of the first-quarter sales report you sent yesterday, and most of it looks great. Before we present it to the board on April 15, there are a few things that need attention.\n\nFirst, the figures for the Eastern region on page 4 do not match the totals in the summary table. I believe the February numbers were entered twice. Second, the chart on page 7 uses last year's color scheme, which may confuse readers who compare it with the previous report.\n\nFinally, could you add a short section explaining why online sales dropped in March? The board will certainly ask about it, and I would rather address the question in the report than be caught off guard.\n\nPlease send me the revised version by Friday.\n\nThanks,\nLeo", questions:[
+{q:"Why did Mr. Marchetti write the e-mail?",choices:["To request changes to a document","To schedule a board meeting","To announce a sales increase","To ask for a deadline extension"],answer:0,exp:"핵심: 목적 → 제목 'Corrections Needed'. 이유: 보고서 수정 사항을 요청함."},
+{q:"What problem does Mr. Marchetti mention about page 4?",choices:["It is missing a chart","It contains a duplicate entry","It uses the wrong colors","It is too long"],answer:1,exp:"핵심: 세부 사항 → 'February numbers were entered twice'. 이유: entered twice → duplicate entry(paraphrase)."},
+{q:"The phrase \"caught off guard\" in paragraph 3 is closest in meaning to",choices:["blamed","delayed","surprised","praised"],answer:2,exp:"핵심: 관용 표현 → '불시에 당하다'. 이유: 대비 없이 질문을 받아 당황하는 상황이므로 surprised."}]},
+
+{id:"p7-18", week:4, kind:"review", title:"Review: Negotiation Skills Workshop", text:"Workshop Review: \"Negotiation Skills for Managers\"\nPresented by Clearpath Training, October 3\nSubmitted by Arjun Mehta, Operations Manager\n\nI attended this one-day workshop with four colleagues from the procurement team. The instructor, Beatrice Lang, has clearly spent years negotiating supplier contracts, and her real-world examples were far more valuable than the textbook theory I expected. The role-playing exercises in the afternoon were the highlight; each participant negotiated a mock contract while the others gave feedback.\n\nTwo points for improvement: the morning session ran twenty minutes late because of a projector problem, and the printed workbook contained several pages that were never referenced. At $350 per person, the course is not cheap, but my team has already applied two of the techniques in a meeting with a vendor this week. I would recommend it to anyone who manages supplier relationships.", questions:[
+{q:"What is suggested about Ms. Lang?",choices:["She works in the procurement department","She wrote the printed workbook","She teaches at a university","She has practical experience in her field"],answer:3,exp:"핵심: 추론 → 'spent years negotiating supplier contracts'. 이유: 수년간의 실무 → practical experience(paraphrase)."},
+{q:"What is NOT mentioned as a drawback of the workshop?",choices:["A delayed start","Unused materials","The cost","The size of the group"],answer:3,exp:"핵심: NOT 문제 → 단점 두 가지 + 가격 언급 확인. 이유: 그룹 규모는 언급 없음."}]},
+
+{id:"p7-19", week:4, kind:"schedule", title:"Schedule: Flight Itinerary", text:"Northwind Airlines — Flight NW 212\nBoston (BOS) to Denver (DEN)\nItinerary for: Ms. Chloe Dubois\nConfirmation Code: 7HRX2L\n\nDeparture: Thursday, May 21, 7:45 A.M. from Boston Logan, Terminal C, Gate C19\nArrival: Thursday, May 21, 10:20 A.M. at Denver International, Concourse B\nSeat: 14A (window, Economy Plus)\nBaggage: One checked bag included on both flights; additional bags $40 each\n\nReturn: Sunday, May 24, 3:10 P.M. from Denver, Concourse B\nArrival: Sunday, May 24, 9:05 P.M. at Boston, Terminal C\nSeat: 22C (aisle, Economy)\n\nNotes:\n- Boarding begins 40 minutes before departure and closes 15 minutes before departure.\n- A complimentary snack and beverage are served on all flights over three hours.\n- Changes made within 24 hours of departure are subject to a $75 fee.\n- Check in online at www.northwindair.example starting 24 hours before each flight.", questions:[
+{q:"When does boarding close for the outbound flight?",choices:["7:05 A.M.","7:30 A.M.","7:45 A.M.","8:00 A.M."],answer:1,exp:"핵심: 계산 문제 → 출발 15분 전. 이유: 7:45에서 15분을 빼면 7:30."},
+{q:"What is indicated about Ms. Dubois's seats?",choices:["She has the same seat on both flights","She chose an aisle seat for both flights","She upgraded her return seat","She is in a different cabin class on the return flight"],answer:3,exp:"핵심: 추론 → Economy Plus vs Economy 비교. 이유: 두 항공편의 좌석 등급이 다름."},
+{q:"According to the notes, when can Ms. Dubois begin online check-in for her outbound flight?",choices:["Wednesday, May 20, at 7:45 A.M.","Thursday, May 21, at 7:05 A.M.","Monday, May 18","Only at the airport"],answer:0,exp:"핵심: 24시간 전 계산. 이유: 5월 21일 7:45의 24시간 전 → 5월 20일 7:45."}]},
+
+{id:"p7-20", week:4, kind:"form", title:"Form: Return Authorization", text:"Orion Office Supplies\nReturn Authorization Form\n\nCustomer: Gavin Holt, Pinewood Dental Clinic\nAccount Number: PD-30921\nOriginal Order Number: 115678\nOrder Date: August 3\nDate of Request: August 11\n\nItem(s) Being Returned:\nQty 2 — Ergonomic desk chair, Model EC-7, black\n\nReason for Return (check one):\n[ ] Wrong item shipped\n[X] Item damaged on arrival\n[ ] Item no longer needed\n[ ] Other\n\nDescription: Both chairs arrived with cracked armrests. Photos are attached.\n\nRequested Resolution:\n[X] Replacement [ ] Refund [ ] Store credit\n\nCustomer Signature: Gavin Holt\n\nFOR OFFICE USE ONLY\nReturn approved: Yes\nReplacement ship date: August 14\nNotes: Customer is within the 14-day return window. Pickup of damaged items is scheduled for the same day as the replacement delivery. Waive the restocking fee due to shipping damage. — S. Kim", questions:[
+{q:"What does Mr. Holt want Orion Office Supplies to do?",choices:["Refund his money","Issue store credit","Repair the armrests","Send new chairs"],answer:3,exp:"핵심: Requested Resolution 항목 확인. 이유: Replacement 체크 → 새 의자 발송(paraphrase)."},
+{q:"What is implied in the office notes?",choices:["Mr. Holt must pay a restocking fee","The request was submitted too late","The damaged chairs will be collected on August 14","A refund will be issued instead"],answer:2,exp:"핵심: 추론 → 'Pickup ... same day as the replacement delivery' + ship date 8/14. 이유: 두 정보를 결합해야 함."}]}
+];
+
+</script>
+<script>
+(function(){
+'use strict';
+var KEY='toeic30.v1';
+var $=function(s){return document.querySelector(s)};
+var screen=$('#screen'), top=$('#top');
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function pad(n){return (n<10?'0':'')+n}
+function fmt(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function today(){return fmt(new Date())}
+function addDays(s,n){var p=s.split('-').map(Number);return fmt(new Date(p[0],p[1]-1,p[2]+n))}
+function dayDiff(a,b){var x=a.split('-').map(Number),y=b.split('-').map(Number);return Math.round((new Date(y[0],y[1]-1,y[2])-new Date(x[0],x[1]-1,x[2]))/864e5)}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+
+/* ---------- state (localStorage, every access guarded) ---------- */
+function DEF(){return {day:1,done:{},streak:0,last:null,wrong:{},vocab:{},seen:{},stats:{a:0,c:0},sess:null}}
+var S=load();
+function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);var d=DEF();for(var k in d)if(o[k]===undefined)o[k]=d[k];return o}}catch(e){}return DEF()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+/* ---------- data index ---------- */
+function byId(arr){var m={};arr.forEach(function(x){m[x.id]=x});return m}
+var V=byId(VOCAB),P5=byId(PART5),P2=byId(PART2),P6=byId(PART6),P7=byId(PART7);
+var WEEK_START={1:1,2:8,3:15,4:22};
+function weekOf(d){return d<=7?1:d<=14?2:d<=21?3:4}
+function ofWeek(arr,w){return arr.filter(function(x){return x.week===w})}
+function slice(arr,w,day,per){var list=ofWeek(arr,w),off=(day-WEEK_START[w])*per;return list.slice(off,off+per)}
+function itemKey(it){return it.t+'|'+it.id+(it.n!==undefined?'|'+it.n:'')+(it.qi!==undefined?'|'+it.qi:'')}
+function keyToItem(k){var p=k.split('|');var it={t:p[0],id:p[1]};if(p[0]==='p6')it.n=+p[2];if(p[0]==='p7')it.qi=+p[2];return it}
+function validKey(k){var it=keyToItem(k);if(it.t==='v')return !!V[it.id];if(it.t==='p5')return !!P5[it.id];if(it.t==='p2')return !!P2[it.id];if(it.t==='p6')return !!(P6[it.id]&&P6[it.id].blanks[it.n-1]);if(it.t==='p7')return !!(P7[it.id]&&P7[it.id].questions[it.qi]);return false}
+function p6Items(p){return p?p.blanks.map(function(b){return {t:'p6',id:p.id,n:b.n}}):[]}
+function p7Items(p){return p?p.questions.map(function(q,i){return {t:'p7',id:p.id,qi:i}}):[]}
+function p2Items(list){return list.map(function(x){return {t:'p2',id:x.id}})}
+
+/* 그날의 특별 파트: W1 LC Part2, W2 Part6, W3 Part7/Part2 교대, W4 Part7→Part2→Part6 순환 */
+function specialFor(day){
+  var w=weekOf(day),i;
+  if(w===1)return p2Items(slice(PART2,1,day,3));
+  if(w===2)return p6Items(ofWeek(PART6,2)[day-8]);
+  if(w===3){i=day-15;if(i%2===0)return p7Items(ofWeek(PART7,3)[i/2]);var l3=ofWeek(PART2,3),o3=((i-1)/2)*3;return p2Items(l3.slice(o3,o3+3))}
+  i=day-22;var r=i%3,n=Math.floor(i/3);
+  if(r===0)return p7Items(ofWeek(PART7,4)[n]);
+  if(r===1){var l4=ofWeek(PART2,4),o4=n*3;return p2Items(l4.slice(o4,o4+3))}
+  return p6Items(ofWeek(PART6,4)[n]);
+}
+function dueReview(){
+  var t=today();
+  return Object.keys(S.wrong).filter(function(k){return validKey(k)&&S.wrong[k].due<=t})
+    .sort(function(a,b){return S.wrong[a].due<S.wrong[b].due?-1:1}).slice(0,5)
+    .map(function(k){var it=keyToItem(k);it.r=1;return it});
+}
+function buildDay(day){
+  var q=dueReview();
+  VOCAB.filter(function(v){return v.day===day}).forEach(function(v){q.push({t:'v',id:v.id})});
+  slice(PART5,weekOf(day),day,5).forEach(function(x){q.push({t:'p5',id:x.id})});
+  return q.concat(specialFor(day));
+}
+/* 한 세트 더: 아직 안 본 Part5 5개 + Part2 3개 (현재 주차 우선) */
+function pickUnseen(arr,w,n,t){
+  var cand=arr.filter(function(x){return x.week<=w}),un=cand.filter(function(x){return !S.seen[t+'|'+x.id]});
+  var cur=un.filter(function(x){return x.week===w}),rest=un.filter(function(x){return x.week!==w});
+  var out=shuffle(cur).concat(shuffle(rest)).slice(0,n);
+  if(out.length<n)out=out.concat(shuffle(cand.filter(function(x){return out.indexOf(x)<0})).slice(0,n-out.length));
+  return out;
+}
+function buildBonus(day){
+  var w=weekOf(day);
+  var q=pickUnseen(PART5,w,5,'p5').map(function(x){return {t:'p5',id:x.id}});
+  return q.concat(p2Items(pickUnseen(PART2,w,3,'p2')));
+}
+function phaseOf(it){return it.r?'복습':it.t==='v'?'단어':it.t==='p5'?'문법':it.t==='p2'?'듣기':'독해'}
+function phases(q){var out=[];q.forEach(function(it){var p=phaseOf(it);if(out[out.length-1]!==p)out.push(p)});return out}
+
+/* ---------- result bookkeeping (간격 반복: 1일 → 3일 → 7일, 3연속 정답 졸업) ---------- */
+function markResult(it,ok){
+  var k=itemKey(it),t=today();
+  S.stats.a++;if(ok)S.stats.c++;
+  if(it.r){var w=S.wrong[k];if(w){if(ok){w.sc=(w.sc||0)+1;if(w.sc>=3)delete S.wrong[k];else w.due=addDays(t,[3,7][w.sc-1])}else{w.sc=0;w.due=addDays(t,1)}}}
+  else{S.seen[k]=1;if(!ok&&!S.wrong[k])S.wrong[k]={due:addDays(t,1),sc:0}}
+  if(it.t==='v'){S.vocab[it.id]=S.vocab[it.id]||{s:0,k:0};S.vocab[it.id].s++;if(ok)S.vocab[it.id].k++}
+  var ss=S.sess;if(ss){if(ok)ss.c++;else ss.w++}
+  save();
+}
+function displayStreak(){if(!S.last)return 0;var d=dayDiff(S.last,today());return d<=1?S.streak:0}
+function finishSession(){
+  var ss=S.sess,t=today();
+  if(!ss.bonus){
+    S.done[ss.day]=t;
+    if(S.last!==t){S.streak=(S.last&&dayDiff(S.last,t)===1)?S.streak+1:1;S.last=t}
+    if(S.day===ss.day)S.day=ss.day+1;
+  }
+  ss.fin=1;save();
+}
+
+/* ---------- speech ---------- */
+var canSpeak=('speechSynthesis' in window)&&('SpeechSynthesisUtterance' in window);
+var speaking=false,voice=null;
+function pickVoice(){try{var vs=speechSynthesis.getVoices();if(!vs.length)return null;return vs.filter(function(v){return /^en[-_]US/i.test(v.lang)&&/Google|Samantha|Aria|Jenny|Natural/i.test(v.name)})[0]||vs.filter(function(v){return /^en[-_]US/i.test(v.lang)})[0]||vs.filter(function(v){return /^en/i.test(v.lang)})[0]||null}catch(e){return null}}
+function stopSpeak(){if(!canSpeak)return;try{speechSynthesis.cancel()}catch(e){}speaking=false;var s=$('.spk');if(s)s.classList.remove('on')}
+function speak(parts){
+  if(!canSpeak)return;
+  try{
+    speechSynthesis.cancel();
+    if(!voice)voice=pickVoice();
+    var s=$('.spk');if(s)s.classList.add('on');speaking=true;
+    parts.forEach(function(p,i){
+      var u=new SpeechSynthesisUtterance(p);u.lang='en-US';u.rate=0.95;if(voice)u.voice=voice;
+      if(i===parts.length-1)u.onend=function(){speaking=false;var s2=$('.spk');if(s2)s2.classList.remove('on')};
+      u.onerror=function(){speaking=false;var s2=$('.spk');if(s2)s2.classList.remove('on')};
+      speechSynthesis.speak(u);
+    });
+  }catch(e){speaking=false}
+}
+if(canSpeak){try{speechSynthesis.onvoiceschanged=function(){voice=pickVoice()}}catch(e){}}
+
+/* ---------- rendering ---------- */
+var locked=false,timer=null;
+function setScreen(html){clearTimeout(timer);locked=false;stopSpeak();screen.innerHTML=html;window.scrollTo(0,0)}
+function cur(){var ss=S.sess;return ss&&!ss.fin&&ss.idx<ss.q.length?ss.q[ss.idx]:null}
+function header(){
+  var ss=S.sess;
+  if(!ss||ss.fin){top.hidden=true;return}
+  top.hidden=false;
+  $('#dayLabel').textContent=ss.bonus?'Day '+ss.day+' +':'Day '+ss.day;
+  var ph=phases(ss.q),it=ss.q[ss.idx],curP=it?phaseOf(it):ph[ph.length-1],ci=ph.indexOf(curP);
+  $('#dots').innerHTML=ph.map(function(p,i){return '<i class="'+(i<ci?'on':i===ci?'cur':'')+'"></i>'}).join('');
+  $('#phaseName').textContent=curP;
+  $('#cnt').textContent=ss.idx+'/'+ss.q.length;
+  $('#barFill').style.width=(ss.idx/ss.q.length*100)+'%';
+}
+function render(){
+  header();
+  var ss=S.sess;
+  if(!ss)return renderHome();
+  if(ss.fin)return renderResult();
+  if(ss.idx>=ss.q.length){finishSession();header();return renderResult()}
+  var it=ss.q[ss.idx];
+  if(it.t==='v')return renderVocab(it);
+  if(it.t==='p5')return renderP5(it);
+  if(it.t==='p2')return renderP2(it);
+  if(it.t==='p6')return renderP6(it);
+  if(it.t==='p7')return renderP7(it);
+  next();
+}
+function next(){var ss=S.sess;if(!ss)return;ss.idx++;save();render()}
+function calendar(){
+  var t=today(),h='<div class="cal">';
+  for(var d=1;d<=30;d++){var c=S.done[d]?'done':(d===S.day&&!S.done[d]?'today':'');h+='<i class="'+c+'">'+d+'</i>'}
+  return h+'</div>';
+}
+function startDay(bonus){
+  var day=Math.min(S.day,30);
+  if(bonus){day=S.done[S.day]?S.day:Math.max(1,Math.min(S.day-1,30));if(S.day>30)day=30}
+  var q=bonus?buildBonus(day):buildDay(day);
+  S.sess={day:day,bonus:!!bonus,q:q,idx:0,c:0,w:0,date:today(),fin:0};save();render();
+}
+function renderHome(){
+  var t=today(),st=displayStreak();
+  if(S.sess&&S.sess.date!==t){S.sess=null;save()}
+  var resume=S.sess&&!S.sess.fin&&S.sess.date===t;
+  var doneToday=S.day>30||S.done[S.day-1]===t;
+  var h='<div class="home"><h1>토익 30일 800</h1>';
+  if(S.day>30&&!resume){
+    h+='<p class="big">완주 🎉</p><p class="sub">30일을 다 채웠습니다. 이제 실전만 남았어요.</p>'
+      +(st?'<span class="streak">🔥 '+st+'일 연속</span>':'')+calendar()
+      +'<div class="actions" style="width:100%"><button class="primary" id="bonusBtn">복습 한 세트 (5분) ▶</button></div>';
+  }else if(resume){
+    var ss=S.sess;
+    h+='<p class="big">Day '+ss.day+(ss.bonus?' +':'')+'</p><p class="sub">하던 세트가 남아 있어요 · '+ss.idx+'/'+ss.q.length+'</p>'
+      +(st?'<span class="streak">🔥 '+st+'일 연속</span>':'')
+      +'<div class="actions" style="width:100%"><button class="primary" id="startBtn">이어서 하기 ▶</button></div>';
+  }else if(doneToday){
+    h+='<p class="big">오늘 끝 ✅</p><p class="sub">Day '+(S.day-1)+' 완료 · 내일 Day '+S.day+'</p>'
+      +(st?'<span class="streak">🔥 '+st+'일 연속</span>':'')+calendar()
+      +'<div class="actions" style="width:100%"><button class="primary" id="bonusBtn">한 세트 더 (5분) ▶</button></div>';
+  }else{
+    var cont=S.day>1;
+    h+='<p class="big">Day '+S.day+'</p><p class="sub">'+(cont?'이어서 · ':'')+'약 10분</p>'
+      +(st?'<span class="streak">🔥 '+st+'일 연속</span>':'<span class="streak">오늘부터 시작</span>')
+      +(cont?calendar():'')
+      +'<div class="actions" style="width:100%"><button class="primary" id="startBtn">Day '+S.day+' 시작 ▶</button></div>';
+  }
+  h+='<p class="keys">Enter 시작</p></div>';
+  setScreen(h);
+  var b=$('#startBtn');if(b)b.onclick=function(){if(resume)render();else startDay(false)};
+  var bb=$('#bonusBtn');if(bb)bb.onclick=function(){startDay(true)};
+}
+function renderResult(){
+  var ss=S.sess,tot=ss.c+ss.w,acc=tot?Math.round(ss.c/tot*100):0,st=displayStreak();
+  var finished=!ss.bonus&&ss.day===30;
+  var h='<div class="home">'
+    +(finished?'<p class="big">30일 완주 🎉</p><p class="sub">Day 30까지 끝. 이제 실전에서 800을 찍을 차례.</p>':'<p class="big">오늘 끝 ✅</p><p class="sub">'+(ss.bonus?'추가 세트 완료':'Day '+ss.day+' 완료')+'</p>')
+    +'<div class="stats"><div><b>'+acc+'%</b><small>정답률</small></div><div><b>'+ss.w+'</b><small>오늘 틀린 것</small></div><div><b>🔥 '+st+'</b><small>연속 일</small></div></div>'
+    +(ss.w?'<p class="sub">틀린 건 내일 복습에 자동으로 나와요.</p>':'<p class="sub">다 맞았어요. 내일도 이 느낌으로.</p>')
+    +calendar()
+    +'<div class="actions" style="width:100%"><button class="primary" id="bonusBtn">한 세트 더 (5분) ▶</button><button class="ghost" id="homeBtn">오늘은 여기까지</button></div>'
+    +'<button class="small" id="resetLink">처음부터 다시</button><div id="confirmBox"></div></div>';
+  setScreen(h);
+  $('#bonusBtn').onclick=function(){startDay(true)};
+  $('#homeBtn').onclick=function(){S.sess=null;save();render()};
+  $('#resetLink').onclick=function(){
+    $('#confirmBox').innerHTML='<div class="confirm"><span>모든 진행(Day, 연속 기록, 오답)을 지우고 Day 1부터 다시 시작할까요?</span><div class="pair"><button class="no" id="cNo">취소</button><button class="yes" id="cYes">네, 초기화</button></div></div>';
+    $('#cNo').onclick=function(){$('#confirmBox').innerHTML=''};
+    $('#cYes').onclick=function(){S=DEF();try{localStorage.removeItem(KEY)}catch(e){}save();render()};
+  };
+}
+
+/* 보기 버튼 공통 */
+function choicesHtml(ch,hide){return '<div class="choices">'+ch.map(function(c,i){return '<button class="choice'+(hide?' hiddenText':'')+'" data-i="'+i+'"><b>'+String.fromCharCode(65+i)+'</b><span>'+(hide?'(들어보세요)':esc(c))+'</span></button>'}).join('')+'</div>'}
+function expHtml(exp,ok){var m=/^핵심:\s*(.*?)\s*이유:\s*(.*)$/.exec(exp);var core=m?m[1]:exp,why=m?m[2]:'';return '<div class="exp'+(ok?' good':'')+'"><div><span class="lbl">핵심</span>'+esc(core)+'</div>'+(why?'<div><span class="lbl">이유</span>'+esc(why)+'</div>':'')+'</div>'}
+function bindChoices(it,answer,exp,ch,after){
+  var btns=screen.querySelectorAll('.choice');
+  btns.forEach(function(b){b.onclick=function(){
+    if(locked)return;locked=true;
+    var i=+b.dataset.i,ok=i===answer;
+    btns.forEach(function(x,j){x.disabled=true;if(ch)x.querySelector('span').textContent=ch[j];if(j===answer)x.classList.add('ok');else if(j===i)x.classList.add('bad');else x.classList.add('dim')});
+    b.classList.add('pick');
+    try{if(navigator.vibrate)navigator.vibrate(ok?12:[40,40,40])}catch(e){}
+    markResult(it,ok);header();
+    if(after)after(ok);
+    if(ok){timer=setTimeout(next,600)}
+    else{
+      var box=$('#feedback');box.innerHTML=expHtml(exp,false)+'<div class="actions stick"><button class="primary" id="nextBtn">다음 ▶</button></div>';
+      $('#nextBtn').onclick=next;$('#nextBtn').focus();
+    }
+  }});
+}
+function renderVocab(it){
+  var v=V[it.id],flipped=false;
+  setScreen('<span class="tag'+(it.r?' review':'')+'">'+(it.r?'복습 · 단어':'단어')+'</span>'
+    +'<div class="card" id="card"><div class="w">'+esc(v.word)+'</div><div class="pos">'+esc(v.pos)+'</div><div id="back" hidden><div class="m">'+esc(v.meaning)+'</div><div class="ex">'+exHl(v.ex,v.word)+'</div></div><div class="tap" id="tap">카드를 누르면 뜻이 보여요</div></div>'
+    +'<div class="pair" id="pair"><button class="no" data-k="no">몰라요</button><button class="yes" data-k="yes">알아요</button></div><div id="feedback"></div><p class="keys">1 몰라요 · 2 알아요 · Enter 뜻 보기/다음</p>');
+  var card=$('#card');
+  function flip(){if(flipped)return;flipped=true;card.classList.add('flip');$('#back').hidden=false;$('#tap').hidden=true}
+  card.onclick=flip;
+  screen.querySelectorAll('#pair button').forEach(function(b){b.onclick=function(){
+    if(locked)return;locked=true;var ok=b.dataset.k==='yes';flip();
+    $('#pair').hidden=true;markResult(it,ok);header();
+    if(ok){card.style.borderColor='var(--ok-line)';timer=setTimeout(next,900)}
+    else{card.style.borderColor='var(--bad-line)';$('#feedback').innerHTML='<div class="actions stick"><button class="primary" id="nextBtn">다음 ▶</button></div>';$('#nextBtn').onclick=next;$('#nextBtn').focus()}
+  }});
+  screen._enter=function(){if(!flipped)flip();else if($('#nextBtn'))$('#nextBtn').click()};
+}
+function exHl(ex,word){var re=new RegExp('('+word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').split(' ')[0].slice(0,Math.max(4,word.split(' ')[0].length-2))+'\\w*)','i');return esc(ex).replace(re,'<em>$1</em>')}
+function renderP5(it){
+  var q=P5[it.id];
+  setScreen('<span class="tag'+(it.r?' review':'')+'">'+(it.r?'복습 · ':'')+'Part 5 · '+esc(q.type)+'</span>'
+    +'<p class="q">'+esc(q.q).replace('------','<span class="blank">______</span>')+'</p>'
+    +choicesHtml(q.choices)+'<div id="feedback"></div><p class="keys">1~4 선택 · Enter 다음</p>');
+  bindChoices(it,q.answer,q.exp);
+}
+function renderP2(it){
+  var q=P2[it.id],hide=canSpeak;
+  setScreen('<span class="tag'+(it.r?' review':'')+'">'+(it.r?'복습 · ':'')+'LC Part 2 · '+esc(q.trap)+'</span>'
+    +'<div class="lc"><button class="spk" id="spk" aria-label="듣기">🔊</button><div class="note">'+(hide?'질문과 (A)(B)(C)를 듣고 알맞은 응답을 고르세요':'이 기기는 음성 재생이 안 돼요. 텍스트로 풀어요.')+'</div>'
+    +(hide?'':'<p class="q" style="text-align:center">'+esc(q.q)+'</p>')+'</div>'
+    +choicesHtml(q.choices,hide)+'<div id="feedback"></div><p class="keys">1~3 선택 · Space 다시 듣기 · Enter 다음</p>');
+  var parts=[q.q,'A. '+q.choices[0],'B. '+q.choices[1],'C. '+q.choices[2]];
+  $('#spk').onclick=function(){speak(parts)};
+  screen._space=function(){speak(parts)};
+  bindChoices(it,q.answer,q.exp,hide?q.choices:null,function(){var f=$('#feedback');var s='<p class="hint">Q. '+esc(q.q)+'</p>';f.insertAdjacentHTML('afterbegin',s)});
+  if(hide)timer=setTimeout(function(){speak(parts)},250);
+}
+function passageHtml(p,curN){
+  var t=esc(p.text).replace(/\[(\d)\]/g,function(_,n){n=+n;var b=p.blanks[n-1];if(n<curN)return '<span class="b done">'+esc(b.choices[b.answer])+'</span>';return '<span class="b'+(n===curN?' cur':'')+'">'+n+'</span>'});
+  return '<div class="passage"><span class="ttl">'+esc(p.title)+'</span>'+t+'</div>';
+}
+function renderP6(it){
+  var p=P6[it.id],b=p.blanks[it.n-1];
+  setScreen('<span class="tag'+(it.r?' review':'')+'">'+(it.r?'복습 · ':'')+'Part 6 · 빈칸 '+it.n+'/3</span>'+passageHtml(p,it.n)
+    +'<p class="hint">빈칸 ['+it.n+']에 알맞은 것은?</p>'+choicesHtml(b.choices)+'<div id="feedback"></div><p class="keys">1~4 선택 · Enter 다음</p>');
+  bindChoices(it,b.answer,b.exp);
+}
+function renderP7(it){
+  var p=P7[it.id],q=p.questions[it.qi];
+  setScreen('<span class="tag'+(it.r?' review':'')+'">'+(it.r?'복습 · ':'')+'Part 7 · '+(it.qi+1)+'/'+p.questions.length+'</span>'
+    +'<div class="passage"><span class="ttl">'+esc(p.title)+'</span>'+esc(p.text)+'</div>'
+    +'<p class="q" style="font-size:18px">'+esc(q.q)+'</p>'+choicesHtml(q.choices)+'<div id="feedback"></div><p class="keys">1~4 선택 · Enter 다음</p>');
+  bindChoices(it,q.answer,q.exp);
+}
+
+/* ---------- keyboard ---------- */
+document.addEventListener('keydown',function(e){
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  var tag=(e.target&&e.target.tagName)||'';if(/INPUT|TEXTAREA/.test(tag))return;
+  if(e.key==='Enter'){
+    var nb=$('#nextBtn')||$('#startBtn')||$('#bonusBtn');
+    if(screen._enter&&!$('#nextBtn')){e.preventDefault();screen._enter();return}
+    if(nb){e.preventDefault();nb.click()}return;
+  }
+  if(e.key===' '&&screen._space){e.preventDefault();screen._space();return}
+  if(/^[1-4]$/.test(e.key)){
+    var pair=$('#pair');if(pair&&!pair.hidden){var pb=pair.querySelectorAll('button')[+e.key-1];if(pb){pb.click();return}}
+    var b=screen.querySelectorAll('.choice')[+e.key-1];if(b&&!b.disabled)b.click();
+  }
+});
+document.addEventListener('visibilitychange',function(){if(document.hidden)stopSpeak()});
+
+/* ---------- boot ---------- */
+if(S.sess&&S.sess.date!==today()){S.sess=null;save()}
+if(S.sess&&!S.sess.fin&&S.sess.q.some(function(it){return !validKey(itemKey(it))})){S.sess=null;save()}
+render();
+})();
+</script>
+</html>
