@@ -999,6 +999,18 @@ function speak(parts){
   }catch(e){speaking=false}
 }
 if(canSpeak){try{speechSynthesis.onvoiceschanged=loadVoices;loadVoices()}catch(e){}}
+/* 긴 지문은 문장 단위로 쪼개서 큐잉 (Chrome은 15초 넘는 발화를 끊어버림) */
+function sentParts(text,g){
+  var clean=String(text).replace(/\s*\n+\s*/g,'. ').replace(/([.!?:])\.\s/g,'$1 ').replace(/\s+/g,' ').trim();
+  var raw=clean.split(/(?<=[.!?])\s+/),out=[];
+  var ABBR=/\b(Mr|Mrs|Ms|Dr|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec|St|No|vs|Inc|Ltd|Co|[A-Z])\.$/;
+  raw.forEach(function(x){
+    x=x.trim();if(!x)return;
+    var prev=out[out.length-1];
+    if(prev!==undefined&&(ABBR.test(prev)||/^[a-z0-9]/.test(x)))out[out.length-1]=prev+' '+x;else out.push(x);
+  });
+  return out.map(function(x){return {text:x,g:g}});
+}
 function genderOf(id){var n=parseInt(String(id).replace(/\D/g,''),10)||0;return n%2?'f':'m'}
 
 /* ---------- rendering ---------- */
@@ -1164,16 +1176,25 @@ function passageHtml(p,curN){
   return '<div class="passage"><span class="ttl">'+esc(p.title)+'</span>'+t+'</div>';
 }
 function renderP6(it){
-  var p=P6[it.id],b=p.blanks[it.n-1];
-  setScreen('<span class="tag'+(it.r?' review':'')+'">'+(it.r?'복습 · ':'')+'Part 6 · 빈칸 '+it.n+'/3</span>'+passageHtml(p,it.n)
-    +'<p class="hint">빈칸 ['+it.n+']에 알맞은 것은?</p>'+choicesHtml(b.choices)+'<div id="feedback"></div><p class="keys">1~4 선택 · Enter 다음</p>');
-  bindChoices(it,b.answer,b.exp);
+  var p=P6[it.id],b=p.blanks[it.n-1],g=genderOf(p.id),answered=false;
+  setScreen('<div class="tagrow"><span class="tag'+(it.r?' review':'')+'">'+(it.r?'복습 · ':'')+'Part 6 · 빈칸 '+it.n+'/3</span>'+(canSpeak?'<button class="spk mini inline" id="spk" aria-label="지문 듣기">🔊</button>':'')+'</div>'+passageHtml(p,it.n)
+    +'<p class="hint">빈칸 ['+it.n+']에 알맞은 것은?</p>'+choicesHtml(b.choices)+'<div id="feedback"></div><p class="keys">1~4 선택 · Space 지문 듣기 · Enter 다음</p>');
+  /* upTo번 빈칸까지는 정답으로 채우고, 나머지는 "blank"로 읽기 */
+  var fill=function(text,upTo){return text.replace(/\[(\d)\]/g,function(_,n){n=+n;var bb=p.blanks[n-1];return n<=upTo?bb.choices[bb.answer]:'blank'})};
+  var sentence=function(){var ss=p.text.split(/(?<=[.!?])\s+|\n+/);var hit=ss.filter(function(x){return x.indexOf('['+it.n+']')>=0})[0]||'';return fill(hit,it.n)};
+  var say=function(){speak(sentParts(fill(p.text,answered?it.n:it.n-1),g))};
+  var sp=$('#spk');if(sp)sp.onclick=say;screen._space=say;
+  if(canSpeak&&it.n===1)timer=setTimeout(say,150);
+  bindChoices(it,b.answer,b.exp,null,function(ok){answered=true;if(!ok)speak(sentParts(sentence(),g))});
 }
 function renderP7(it){
-  var p=P7[it.id],q=p.questions[it.qi];
-  setScreen('<span class="tag'+(it.r?' review':'')+'">'+(it.r?'복습 · ':'')+'Part 7 · '+(it.qi+1)+'/'+p.questions.length+'</span>'
+  var p=P7[it.id],q=p.questions[it.qi],g=genderOf(p.id),g2=g==='f'?'m':'f';
+  setScreen('<div class="tagrow"><span class="tag'+(it.r?' review':'')+'">'+(it.r?'복습 · ':'')+'Part 7 · '+(it.qi+1)+'/'+p.questions.length+'</span>'+(canSpeak?'<button class="spk mini inline" id="spk" aria-label="지문 듣기">🔊</button>':'')+'</div>'
     +'<div class="passage"><span class="ttl">'+esc(p.title)+'</span>'+esc(p.text)+'</div>'
-    +'<p class="q" style="font-size:18px">'+esc(q.q)+'</p>'+choicesHtml(q.choices)+'<div id="feedback"></div><p class="keys">1~4 선택 · Enter 다음</p>');
+    +'<p class="q" style="font-size:18px">'+esc(q.q)+'</p>'+choicesHtml(q.choices)+'<div id="feedback"></div><p class="keys">1~4 선택 · Space 지문 듣기 · Enter 다음</p>');
+  var sayAll=function(){speak(sentParts(p.text,g).concat(sentParts(q.q,g2)))},sayQ=function(){speak(sentParts(q.q,g2))};
+  var sp=$('#spk');if(sp)sp.onclick=sayAll;screen._space=sayAll;
+  if(canSpeak)timer=setTimeout(it.qi===0?sayAll:sayQ,150);
   bindChoices(it,q.answer,q.exp);
 }
 
