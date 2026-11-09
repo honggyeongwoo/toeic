@@ -1165,7 +1165,7 @@ function renderP2(it){
     +(hide?'':'<p class="q" style="text-align:center">'+esc(q.q)+'</p>')+'</div>'
     +choicesHtml(q.choices,hide)+'<div id="feedback"></div><p class="keys">1~3 선택 · Space 다시 듣기 · Enter 다음</p>');
   var g1=genderOf(q.id),g2=g1==='f'?'m':'f';
-  var parts=[{text:q.q,g:g1},{text:'A. '+q.choices[0],g:g2},{text:'B. '+q.choices[1],g:g2},{text:'C. '+q.choices[2],g:g2}];
+  var parts=sentParts(q.q,g1).concat(sentParts('A. '+q.choices[0],g2),sentParts('B. '+q.choices[1],g2),sentParts('C. '+q.choices[2],g2));
   $('#spk').onclick=function(){speak(parts)};
   screen._space=function(){speak(parts)};
   bindChoices(it,q.answer,q.exp,hide?q.choices:null,function(){var f=$('#feedback');var s='<p class="hint">Q. '+esc(q.q)+'</p>';f.insertAdjacentHTML('afterbegin',s)});
