@@ -1132,8 +1132,8 @@ function renderVocab(it){
     +'<div class="card" id="card">'+(canSpeak?'<button class="spk mini" id="spk" aria-label="다시 듣기">🔊</button>':'')+'<div class="w">'+esc(v.word)+'</div><div class="pos">'+esc(v.pos)+'</div><div id="back" hidden><div class="m">'+esc(v.meaning)+'</div><div class="ex">'+exHl(v.ex,v.word)+'</div></div><div class="tap" id="tap">카드를 누르면 뜻이 보여요</div></div>'
     +'<div class="pair" id="pair"><button class="no" data-k="no">몰라요</button><button class="yes" data-k="yes">알아요</button></div><div id="feedback"></div><p class="keys">1 몰라요 · 2 알아요 · Space 듣기 · Enter 뜻 보기/다음</p>');
   var card=$('#card');
-  var sayWord=function(){speak([{text:v.word,g:g}])},sayAll=function(){speak([{text:v.word,g:g},{text:v.ex,g:g}])};
-  function flip(){if(flipped)return;flipped=true;card.classList.add('flip');$('#back').hidden=false;$('#tap').hidden=true;speak([{text:v.ex,g:g}])}
+  var sayWord=function(){speak([{text:v.word,g:g}])},sayAll=function(){speak([{text:v.word,g:g}].concat(sentParts(v.ex,g)))};
+  function flip(){if(flipped)return;flipped=true;card.classList.add('flip');$('#back').hidden=false;$('#tap').hidden=true;speak(sentParts(v.ex,g))}
   card.onclick=flip;
   var sp=$('#spk');if(sp)sp.onclick=function(e){e.stopPropagation();if(flipped)sayAll();else sayWord()};
   screen._space=function(){if(flipped)sayAll();else sayWord()};
